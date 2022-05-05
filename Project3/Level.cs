@@ -64,12 +64,12 @@ namespace BulletHell
             rooms.Add(new Room());
             if (levelMap[mapId.X, mapId.Y] == int.MaxValue)
                 levelMap[mapId.X, mapId.Y] = rooms.Count - 1;
-            rooms[^1].InitRoom(rooms.Count - 1, mapId);
-            if (doorId % 2 == 0)
-                rooms[^1].AddDoor(doorId + 1);
-            else 
-                if (doorId % 2 == 1)
-                    rooms[^1].AddDoor(doorId - 1);   
+            rooms[^1].InitRoom(rooms.Count - 1, mapId);         
+                if (doorId % 2 == 0)
+                    rooms[levelMap[mapId.X, mapId.Y]].AddDoor(doorId + 1);
+                else
+                    if (doorId % 2 == 1)
+                    rooms[levelMap[mapId.X, mapId.Y]].AddDoor(doorId - 1);
         }
 
         public static void ChangeHeroInRoomValue(int id)
@@ -152,7 +152,7 @@ namespace BulletHell
                     if (dr.GetWall() == (Door.WallId)i || 
                         GetPosibleWay(mapCord, i).X < 0 || 
                         GetPosibleWay(mapCord, i).Y < 0 || 
-                        Level.levelMap[GetPosibleWay(mapCord, i).Y, GetPosibleWay(mapCord, i).X] == 0)
+                        Level.levelMap[GetPosibleWay(mapCord, i).X, GetPosibleWay(mapCord, i).Y] != int.MaxValue)
                     {
                         flag = true;
                     }
