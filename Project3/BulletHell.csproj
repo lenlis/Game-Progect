@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -10,6 +10,11 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Content\empty.png\**" />
+    <EmbeddedResource Remove="Content\empty.png\**" />
+    <None Remove="Content\empty.png\**" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Remove="Hero.cs" />
   </ItemGroup>

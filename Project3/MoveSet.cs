@@ -14,31 +14,39 @@ namespace BulletHell
         static public void MoveLeft()
         {
             var heroPos = Hero1.GetPos();
-            heroPos.X -= 230 * (30 / 1000f);
+            if (heroPos.X > Level.roomPos.X)
+                heroPos.X -= 230 * (30 / 1000f);
             Hero1.UpdatePos(heroPos);
         }
 
         static public void MoveRight()
         {
             var heroPos = Hero1.GetPos();
-            heroPos.X += 230 * (30 / 1000f);
+            if (heroPos.X < Objects.windowWidth - 75d - Level.roomPos.X
+                && Level.GetHeroInRoomValue() != Level.MaxRoomInd)
+                heroPos.X += 230 * (30 / 1000f);
             Hero1.UpdatePos(heroPos);
         }
 
         static public void MoveUp()
         {
             var heroPos = Hero1.GetPos();
-            heroPos.Y -= 230 * (30 / 1000f);
+            if (heroPos.Y > Level.roomPos.Y - Hero1.Texture2D.Height + 20)
+                heroPos.Y -= 230 * (30 / 1000f);
             Hero1.UpdatePos(heroPos);
         }
 
         static public void MoveDown()
         {
             var heroPos = Hero1.GetPos();
-            heroPos.Y += 230 * (30 / 1000f);
+            if (heroPos.Y < Objects.windowHeight - 65 - Level.roomPos.Y)
+                heroPos.Y += 230 * (30 / 1000f);
             Hero1.UpdatePos(heroPos);
         }
 
-
+        static public void Soot() 
+        {
+            Objects.Fire();
+        }
     }
 }
