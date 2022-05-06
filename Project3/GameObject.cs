@@ -9,7 +9,7 @@ namespace BulletHell
 {
     public class GameObject
     {
-        Vector2 roomPos;
+        Vector2 Position;
         static public SpriteBatch spriteBatch = Objects.spriteBatch;
 
         bool isSecCondition;
@@ -17,7 +17,7 @@ namespace BulletHell
 
         public Vector2 GetPos()
         {
-            return roomPos;
+            return Position;
         }
 
         
@@ -36,8 +36,8 @@ namespace BulletHell
 
         public void UpdatePos(Vector2 Pos)
         {
-            roomPos.X = Pos.X;
-            roomPos.Y = Pos.Y;
+            Position.X = Pos.X;
+            Position.Y = Pos.Y;
         }
 
 

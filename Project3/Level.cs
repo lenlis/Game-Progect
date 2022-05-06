@@ -12,7 +12,7 @@ namespace BulletHell
         static public int windowWidth;
         static public int windowHeight;
         static public Vector2 roomPos;
-        static public int MaxRoomInd = 50;
+        static public int MaxRoomInd = 20;
         static private int HeroInRoom;
         public static GraphicsDevice graphicsDevice;
         public static int[,] levelMap = new int[10,10];
@@ -34,23 +34,52 @@ namespace BulletHell
             levelMap[3, 0] = 0;
             rooms.Add(new Room());
             rooms[HeroInRoom].InitFirst();
-            while(queue.Count != 0)
+            roomPos = new Vector2(rooms[HeroInRoom].GetPos().X, rooms[HeroInRoom].GetPos().Y);
+            Hero1.UpdatePos(new Vector2(Level.windowWidth / 2 - Hero1.Texture2D.Width / 2, Level.windowHeight / 2 - Hero1.Texture2D.Height / 2));
+            while (queue.Count != 0)
             {
                 var room = queue.Dequeue();
                 room.Init();
             }
             foreach (var room in rooms)
             {
-                foreach(var dr in room.doors)
+                foreach (var dr in room.doors)
                 {
-                    dr.wayToRoomNumChange(levelMap[Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).X, Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).Y]);
+                    dr.wayToRoomNumChange(
+                        levelMap[Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).X,
+                        Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).Y]);
+                    var flag = false;
+                    foreach (var door in rooms[levelMap[Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).X,
+                        Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).Y]].doors)
+                    {
+                        if ((((int)dr.GetWall() % 2 == 0) && ((int)dr.GetWall() + 1 == (int)door.GetWall())) ||
+                            (((int)dr.GetWall() % 2 == 1) && ((int)dr.GetWall() - 1 == (int)door.GetWall())))
+                        {
+                            flag = true;
+                        }
+                    }
+                    if (flag == false)
+                    {
+                        if ((int)dr.GetWall() % 2 == 0)
+                        {
+                            rooms[levelMap[Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).X,
+                            Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).Y]].AddDoor((int)dr.GetWall() + 1);
+
+                            rooms[levelMap[Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).X,
+                            Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).Y]].doors[^1].wayToRoomNumChange(levelMap[room.roomMapCord.X, room.roomMapCord.Y]);
+                        }
+                        else
+                            if ((int)dr.GetWall() % 2 == 1)
+                        {
+                            rooms[levelMap[Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).X,
+                            Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).Y]].AddDoor((int)dr.GetWall() - 1);
+
+                            rooms[levelMap[Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).X,
+                            Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).Y]].doors[^1].wayToRoomNumChange(levelMap[room.roomMapCord.X, room.roomMapCord.Y]);
+                        }
+                    }
                 }
             }
-            
-
-            roomPos = new Vector2(rooms[HeroInRoom].GetPos().X, rooms[HeroInRoom].GetPos().Y);
-            Hero1.UpdatePos(rooms[HeroInRoom].HeroStartPosition);
-
         }
 
         public static int GetHeroInRoomValue()
@@ -69,7 +98,7 @@ namespace BulletHell
                     rooms[levelMap[mapId.X, mapId.Y]].AddDoor(doorId + 1);
                 else
                     if (doorId % 2 == 1)
-                    rooms[levelMap[mapId.X, mapId.Y]].AddDoor(doorId - 1);
+                        rooms[levelMap[mapId.X, mapId.Y]].AddDoor(doorId - 1);
         }
 
         public static void ChangeHeroInRoomValue(int id)
@@ -91,7 +120,17 @@ namespace BulletHell
                     var id = dr.GetWayToRoomNum();
                     Level.ChangeHeroInRoomValue(id);
                     Level.roomPos = new Vector2(Level.rooms[id].GetPos().X, Level.rooms[id].GetPos().Y);
-                    Hero1.UpdatePos(new Vector2(900, 500));
+                    foreach (var door in rooms[id].doors) 
+                    {
+                        if((((int)dr.GetWall() % 2 == 0) && ((int)dr.GetWall() + 1 == (int)door.GetWall())) || 
+                            (((int)dr.GetWall() % 2 == 1) && ((int)dr.GetWall() - 1 == (int)door.GetWall()))) 
+                        {
+                            if (door.GetEnterPos().X != 0)
+                                Hero1.UpdatePos(new Vector2(door.GetEnterPos().X, Hero1.GetPos().Y));
+                            if (door.GetEnterPos().Y != 0)
+                                Hero1.UpdatePos(new Vector2(Hero1.GetPos().X, door.GetEnterPos().Y));
+                        }
+                    }
                 }
             }
         }
@@ -114,7 +153,6 @@ namespace BulletHell
         public List<Door> doors = new List<Door>();
         public Random Rand = new Random();
         public bool Initialized;
-        public Vector2 HeroStartPosition;
         public static Texture2D DoorTexture { get; set; }
 
         public Vector2 GetPos()
@@ -126,7 +164,6 @@ namespace BulletHell
         {
             roomMapCord = new Point(3, 0);
             CountRoomSize(0);
-            HeroStartPosition = new Vector2(Level.windowWidth / 2 - Hero1.Texture2D.Width / 2, Level.windowHeight / 2 - Hero1.Texture2D.Height / 2);
             doors.Add(new Door());
             Level.AddRoom(GetPosibleWay(roomMapCord, 0), 0);
             doors[0].InitDoor(0, Position);
@@ -149,20 +186,23 @@ namespace BulletHell
                 flag = false;
                 foreach (var dr in doors)
                 {
-                    if (dr.GetWall() == (Door.WallId)i || 
-                        GetPosibleWay(mapCord, i).X < 0 || 
-                        GetPosibleWay(mapCord, i).Y < 0 || 
-                        Level.levelMap[GetPosibleWay(mapCord, i).X, GetPosibleWay(mapCord, i).Y] != int.MaxValue)
+                    if 
+                    (
+                        (dr.GetWall() == (Door.WallId)i) || 
+                        (GetPosibleWay(mapCord, i).X < 0) || 
+                        (GetPosibleWay(mapCord, i).Y < 0) ||
+                        (Level.levelMap[GetPosibleWay(mapCord, i).X, GetPosibleWay(mapCord, i).Y] != int.MaxValue)
+                    )
                     {
                         flag = true;
                     }
                 }
                 if (flag == true) continue;
-                if (Level.rooms.Count + Level.queue.Count < 50)
+                if (Level.rooms.Count + Level.queue.Count < 20)
                 {
                     doors.Add(new Door());
-                    doors[doors.Count - 1].InitDoor(i, Position);
-                    Level.queue.Enqueue(new NotInitRoom(i , GetPosibleWay(mapCord, i)));               
+                    Level.queue.Enqueue(new NotInitRoom(i, GetPosibleWay(mapCord, i)));
+                    doors[^1].InitDoor(i, Position);               
                 }
             }
             GenerateObjAndEnem(roomInd);
@@ -170,7 +210,7 @@ namespace BulletHell
 
         public void GenerateObjAndEnem(int roomInd)
         {
-            if (Position.X >= 300 && Position.Y >= 200 && roomInd != Level.MaxRoomInd)
+            if (Position.X >= 500 && Position.Y >= 200 && roomInd != Level.MaxRoomInd)
             {
                 chests.Add(new Chest());
                 if (Rand.Next(1, 100) > 90)
@@ -246,6 +286,7 @@ namespace BulletHell
     {
         private static Point TextureSize;
         private static Point TextureSizeUD;
+        Vector2 EnterPosition;
         public static Texture2D Texture2D { get; set; }
         public static Texture2D SecTexture2D { get; set; }
 
@@ -258,6 +299,10 @@ namespace BulletHell
             down
         }
         private WallId Wall;
+        public Vector2 GetEnterPos()
+        {
+            return EnterPosition;
+        }
 
         public static void CountTextureSize(Point size, Point sizeUD)
         {
@@ -273,13 +318,25 @@ namespace BulletHell
         {
             Wall = (WallId)wall;
             if (Wall == WallId.left)
-                this.UpdatePos(new Vector2(roomPos.X + 5, (Level.windowHeight - roomPos.Y - roomPos.Y) / 2 + roomPos.Y - 50));
+            {
+                this.UpdatePos(new Vector2(roomPos.X - 18, (Level.windowHeight - roomPos.Y - roomPos.Y) / 2 + roomPos.Y - 50));
+                EnterPosition = new Vector2(roomPos.X + 20, 0);               
+            }
             if (Wall == WallId.right)
+            {
                 this.UpdatePos(new Vector2(Level.windowWidth - roomPos.X - 5, (Level.windowHeight - roomPos.Y - roomPos.Y) / 2 + roomPos.Y - 50));
+                EnterPosition = new Vector2(Level.windowWidth - roomPos.X - 20 - Hero1.Texture2D.Width, 0);
+            }
             if (Wall == WallId.up)
-                this.UpdatePos(new Vector2((Level.windowWidth) / 2 - TextureSizeUD.X + 10, roomPos.Y - TextureSizeUD.Y));
+            {
+                this.UpdatePos(new Vector2((Level.windowWidth) / 2 - TextureSizeUD.X + 15, roomPos.Y - TextureSizeUD.Y));
+                EnterPosition = new Vector2(0, roomPos.Y + 20);
+            }
             if (Wall == WallId.down)
-                this.UpdatePos(new Vector2((Level.windowWidth) / 2 - TextureSizeUD.X + 10, Level.windowHeight - roomPos.Y));
+            {
+                this.UpdatePos(new Vector2((Level.windowWidth) / 2 - TextureSizeUD.X + 15, Level.windowHeight - roomPos.Y));
+                EnterPosition = new Vector2(0, Level.windowHeight - roomPos.Y - 20 - Hero1.Texture2D.Height);
+            }
         }
 
         public WallId GetWall()

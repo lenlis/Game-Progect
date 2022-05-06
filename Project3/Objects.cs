@@ -182,5 +182,4 @@ namespace BulletHell
                 spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 2, SpriteEffects.None, 0.5f);
         }
     }
-
 }
