@@ -13,12 +13,19 @@ namespace BulletHell
         static public int windowHeight;   
         static public SpriteBatch spriteBatch;
         public static Vector2 Position = new Vector2();
-        Color color = Color.White;
-        static List<Projectile> projectiles = new List<Projectile>();
-        static List<Coin> coins = new List<Coin>();
+        static readonly List<Projectile> projectiles = new List<Projectile>();
+        static readonly List<Coin> coins = new List<Coin>();
         public static bool HeroDirIsRirht;
 
+        public static void DelAllProj()
+        {
+            for (int i = 0; i < projectiles.Count; i++)
+            { 
+                    projectiles.RemoveAt(i);
+                    i--;
+            }
 
+        }
         public static void Init(SpriteBatch spriteBatch, int Width, int Height)
         {
             windowWidth = Width;
@@ -29,25 +36,25 @@ namespace BulletHell
         public static void AddCoins(Vector2 Pos)
         {
             coins.Add(new Coin());
-            coins[coins.Count - 1].UpdatePos(Pos);
+            coins[^1].UpdatePos(Pos);
         }
         public static void Fire()
         {
             projectiles.Add(new Projectile());
             if (Mouse.GetState().X > Hero1.GetPos().X + 30)
             {
-                projectiles[projectiles.Count - 1].position = new Vector2(Hero1.GetPos().X + 35, Hero1.GetPos().Y + 30);
-                projectiles[projectiles.Count - 1].startPos = new Vector2(Hero1.GetPos().X + 35, Hero1.GetPos().Y + 30);
+                projectiles[^1].position = new Vector2(Hero1.GetPos().X + 35, Hero1.GetPos().Y + 30);
+                projectiles[^1].startPos = new Vector2(Hero1.GetPos().X + 35, Hero1.GetPos().Y + 30);
                 HeroDirIsRirht = true;
             }
             else
             {
-                projectiles[projectiles.Count - 1].position = new Vector2(Hero1.GetPos().X + 15, Hero1.GetPos().Y + 30);
-                projectiles[projectiles.Count - 1].startPos = new Vector2(Hero1.GetPos().X + 15, Hero1.GetPos().Y + 30);
+                projectiles[^1].position = new Vector2(Hero1.GetPos().X + 15, Hero1.GetPos().Y + 30);
+                projectiles[^1].startPos = new Vector2(Hero1.GetPos().X + 15, Hero1.GetPos().Y + 30);
                 HeroDirIsRirht = false;
             }
             
-            projectiles[projectiles.Count - 1].cursorePos = new Point(Mouse.GetState().X, Mouse.GetState().Y);
+            projectiles[^1].cursorePos = new Point(Mouse.GetState().X, Mouse.GetState().Y);
         }
 
         public static void Update()
@@ -95,7 +102,7 @@ namespace BulletHell
         public Vector2 position = new Vector2();
         public Vector2 startPos = new Vector2();
         private float rotationAngle;
-        private int speed;
+        private int speed = 3;
         Color color = Color.White;
         private static Point TextureSize;
 
@@ -124,7 +131,7 @@ namespace BulletHell
 
         public void Update()
         {
-                position += CalcDir()*4;
+                position += CalcDir()*speed;
         }
 
         private Vector2 CalcDir()

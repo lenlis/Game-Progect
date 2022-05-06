@@ -9,7 +9,7 @@ namespace BulletHell
 {
     public class Game1 : Game
     {
-        private GraphicsDeviceManager graphics;
+        private readonly GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
         public static Texture2D empty;
         BasicEffect basicEffect;
@@ -49,9 +49,11 @@ namespace BulletHell
             Door.SecTexture2D = Content.Load<Texture2D>("doorUD");
             Door.CountTextureSize(new Point(Door.Texture2D.Width, Door.Texture2D.Height), new Point(Door.SecTexture2D.Width, Door.SecTexture2D.Height));
             Level.InitLevel(GraphicsDevice, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
-            basicEffect = new BasicEffect(GraphicsDevice);
-            basicEffect.World = Matrix.CreateOrthographicOffCenter(
-                0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, 0, 0, 1);
+            basicEffect = new BasicEffect(GraphicsDevice)
+            {
+                World = Matrix.CreateOrthographicOffCenter(
+                0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, 0, 0, 1)
+            };
             effectPassCollection = basicEffect.Techniques[0].Passes;
         }
 
