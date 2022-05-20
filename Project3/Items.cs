@@ -7,7 +7,6 @@ using System.Collections.Generic;
 
 namespace BulletHell
 {
- 
 
     class Coin : GameObject
     {
@@ -27,7 +26,7 @@ namespace BulletHell
 
         public void PullToHero()
         {
-            UpdatePos(this.GetPos() + this.CalcDir());
+            UpdatePos(this.GetPos() + this.CalcDir()*3);
         }
 
         private Vector2 CalcDir()
@@ -39,7 +38,7 @@ namespace BulletHell
 
         public void Draw()
         {
-                spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 2, SpriteEffects.None, 0.5f);
+                spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.5f);
         }
 
         public bool Garbed

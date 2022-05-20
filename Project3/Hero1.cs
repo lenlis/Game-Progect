@@ -11,15 +11,30 @@ namespace BulletHell
     {
 
         static Vector2 Position = new Vector2(10,10);
-        static int HP;
+        static int HP = 10;
         static int coins;
-
+        static int reloadTimer = 0;
+        static bool isReloaded = true;
         public static Texture2D Texture2D { get; set; }
-
-
         private static Point TextureSize;
 
-
+        public static void Reload()
+        {
+            if (reloadTimer < 30)
+            {
+                isReloaded = false;
+                reloadTimer++;
+            }
+            else
+            {
+                isReloaded = true;
+                reloadTimer = 0;
+            }
+        }
+        public static bool IsWeapReloaded()
+        {
+            return isReloaded;
+        }
         public static void CountTextureSize(Point size)
         {
             TextureSize = size;

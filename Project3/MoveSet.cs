@@ -47,6 +47,7 @@ namespace BulletHell
         static public void Soot() 
         {
             Objects.Fire();
+            Hero1.Reload();
         }
     }
 }

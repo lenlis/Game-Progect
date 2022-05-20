@@ -9,17 +9,32 @@ namespace BulletHell
     {
         static public int windowWidth;
         static public int windowHeight;
+        static public Texture2D marker;
+        static public Texture2D Floor { get; set; }
         static public Vector2 roomPos;
         static public int MaxRoomInd = 20;
         static private int HeroInRoom;
         public static GraphicsDevice graphicsDevice;
-        public static int[,] levelMap = new int[10, 10];
+        public static int[,] initLevelMap = new int[10, 10];
+        public static readonly List<MapRoom> map = new List<MapRoom>();
         public static readonly List<Room> rooms = new List<Room>();
         public static readonly List<int> posibleEndRooms = new List<int>();
         public static Queue<NotInitRoom> queue = new Queue<NotInitRoom>();
+
+        public static void ReInitLevel(GraphicsDevice graphicsDevice, int Width, int Height)
+        {
+            Hero1.ChengeHP(10);
+            for (int i = 0; i < rooms.Count; i++)
+            {
+                map.RemoveAt(i);
+                rooms.RemoveAt(i);
+                i--;
+            }
+            InitLevel(graphicsDevice, Width, Height);
+        }
         public static void InitLevel(GraphicsDevice graphicsDevice, int Width, int Height)
         {
-
+            HeroInRoom = 0;
             Level.graphicsDevice = graphicsDevice;
             windowWidth = Width;
             windowHeight = Height;
@@ -27,39 +42,48 @@ namespace BulletHell
             {
                 for (int u = 0; u < 10; u++)
                 {
-                    levelMap[u, t] = int.MaxValue;
+                    initLevelMap[u, t] = int.MaxValue;
                 }
             }
-            levelMap[3, 0] = 0;
+            initLevelMap[5, 5] = 0;
             rooms.Add(new Room());
             rooms[HeroInRoom].InitFirst();
             roomPos = new Vector2(rooms[HeroInRoom].GetPos().X, rooms[HeroInRoom].GetPos().Y);
-            Hero1.UpdatePos(new Vector2(Level.windowWidth / 2 - Hero1.Texture2D.Width / 2, Level.windowHeight / 2 - Hero1.Texture2D.Height / 2));
+            Hero1.UpdatePos(new Vector2(windowWidth / 2 - Hero1.Texture2D.Width / 2, windowHeight / 2 - Hero1.Texture2D.Height / 2));
+            BuildLevel();
+            DebugDoors();
+            var ID = Room.Rand.Next(1, posibleEndRooms.Count) - 1;
+            rooms[posibleEndRooms[ID]].CountRoomSize(-1);
+            rooms[posibleEndRooms[ID]].doors[0].ChengeDoorPos(rooms[posibleEndRooms[ID]].GetPos());
+        }
 
+        private static void BuildLevel()
+        {
             while (queue.Count != 0)
             {
                 var room = queue.Dequeue();
-                if (levelMap[room.mapId.X, room.mapId.Y] == int.MaxValue || levelMap[room.mapId.X, room.mapId.Y] == -1)
+                if (initLevelMap[room.mapId.X, room.mapId.Y] == int.MaxValue || initLevelMap[room.mapId.X, room.mapId.Y] == -1)
                     room.Init();
+                map.Add(new MapRoom());
+                map[^1].CountPos(room.realMapPos, room.doorId);
             }
+        }
 
+        private static void DebugDoors()
+        {
             foreach (var room in rooms)
             {
                 foreach (var dr in room.doors)
                 {
                     var x = Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).X;
                     var y = Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).Y;
-                    dr.WayToRoomNumChange(levelMap[x, y]);
+                    dr.WayToRoomNumChange(initLevelMap[x, y]);
                 }
                 if (room.doors.Count == 1)
                 {
-                    posibleEndRooms.Add(levelMap[room.roomMapCord.X, room.roomMapCord.Y]);
+                    posibleEndRooms.Add(initLevelMap[room.roomMapCord.X, room.roomMapCord.Y]);
                 }
             }
-            var ID = Room.Rand.Next(1, posibleEndRooms.Count) - 1;
-            rooms[posibleEndRooms[ID]].CountRoomSize(-1);
-            rooms[posibleEndRooms[ID]].doors[0].ChengeDoorPos(rooms[posibleEndRooms[ID]].GetPos());
-
         }
 
         public static int GetHeroInRoomValue()
@@ -67,14 +91,14 @@ namespace BulletHell
             return HeroInRoom;
         }
 
-        public static void AddRoom(Point mapId, int doorWallId)
+        public static void AddRoom(Point mapId, int doorWallId, Vector2 realMapPos)
         {
 
             rooms.Add(new Room());
-            if (levelMap[mapId.X, mapId.Y] == int.MaxValue ||
-                levelMap[mapId.X, mapId.Y] == -1)
-                levelMap[mapId.X, mapId.Y] = rooms.Count - 1;
-            rooms[^1].InitRoom(rooms.Count - 1, mapId, doorWallId);
+            if (initLevelMap[mapId.X, mapId.Y] == int.MaxValue ||
+                initLevelMap[mapId.X, mapId.Y] == -1)
+                initLevelMap[mapId.X, mapId.Y] = rooms.Count - 1;
+            rooms[^1].InitRoom(rooms.Count - 1, mapId, doorWallId, realMapPos);
 
         }
 
@@ -90,15 +114,42 @@ namespace BulletHell
                 if (ch.GetCollusion().Intersects(Hero1.CountCollusion()) && !ch.GetCondition() && !ch.closed)
                     ch.Open(Room.Rand);
             }
+            for (int i = 0; i < rooms[HeroInRoom].enemy.Count; i++)
+            {
+                var en = rooms[HeroInRoom].enemy[i];
+                if (en.GetHP() <= 0)
+                {
+                    Objects.AddCoins(en.GetPos());
+                    rooms[HeroInRoom].enemy.RemoveAt(i);
+                    i--;
+                }
+                en.Update();
+                for (int j = 0; j < Objects.projectiles.Count; j++)
+                {
+                    if (Objects.projectiles[j].GetCollusion().Intersects(en.GetCollusion()))
+                    {
+                        Objects.projectiles[j].Texture = Game1.empty;
+                        en.UpdatePos(en.GetPos() + Objects.projectiles[j].CalcDir()*2);
+                        if(!Objects.projectiles[j].damageGained) 
+                        {
+                            Objects.projectiles[j].damageGained = true;
+                            j--;
+                            en.ChengeHP(-1);
+                        }
+                    }
+                }
+            }
+            if(rooms[HeroInRoom].enemy.Count == 0)
             foreach (var dr in rooms[HeroInRoom].doors)
             {
                 if (dr.GetCollusion().Intersects(Hero1.CountCollusion()) && !dr.GetCondition())
                 {
                     var id = dr.GetWayToRoomNum();
-                    Level.roomPos = new Vector2(Level.rooms[id].GetPos().X, Level.rooms[id].GetPos().Y);
+                    roomPos = new Vector2(rooms[id].GetPos().X, rooms[id].GetPos().Y);
                     Objects.DelAllProj();
                     foreach (var door in rooms[id].doors)
                     {
+                            map[door.GetWayToRoomNum()].mayVisited = true;
                         if ((((int)dr.GetWall() % 2 == 0) && ((int)dr.GetWall() + 1 == (int)door.GetWall())) ||
                             (((int)dr.GetWall() % 2 == 1) && ((int)dr.GetWall() - 1 == (int)door.GetWall())))
                         {
@@ -108,12 +159,29 @@ namespace BulletHell
                                 Hero1.UpdatePos(new Vector2(Hero1.GetPos().X, door.GetEnterPos().Y));
                         }
                     }
-                    Level.ChangeHeroInRoomValue(id);
-
+                    ChangeHeroInRoomValue(id);
+                        if (map[id].visited == false)
+                            map[id].visited = true;
+                }
+            }
+        }   
+        public static void DrawMap(GraphicsDevice graphicsDevice, BasicEffect effect)
+        {
+            for(int i = 0; i < map.Count; i++) 
+            {
+                if (map[i].visited)
+                    map[i].Draw(graphicsDevice, effect);
+                else if (map[i].mayVisited)
+                    map[i].DrawCoridor(graphicsDevice, effect);
+                if (i == HeroInRoom)
+                {
+                    Objects.spriteBatch.Begin();
+                    Objects.spriteBatch.Draw(marker, new Vector2(map[i].GetPos().X - 15, map[i].GetPos().Y - 15),
+                        null, Color.White, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 1);
+                    Objects.spriteBatch.End();
                 }
             }
         }
-
         public static void Draw(GraphicsDevice graphicsDevice, EffectPassCollection effectPassCollection)
         {
             rooms[HeroInRoom].Draw(graphicsDevice, effectPassCollection);
@@ -126,8 +194,10 @@ namespace BulletHell
         VertexPositionColor[] vertexPositionColorsHorisontal;
         VertexPositionColor[] vertexPositionColorsVertical;
         Vector2 Position;
+        Vector2 realMapPosition;
         readonly List<Coin> coins = new List<Coin>();
         public List<Chest> chests = new List<Chest>();
+        public List<SimpleEnem> enemy = new List<SimpleEnem>();
         public List<Door> doors = new List<Door>();
         public static Random Rand = new Random();
         public static Texture2D DoorTexture { get; set; }
@@ -139,11 +209,19 @@ namespace BulletHell
 
         public void InitFirst()
         {
-            roomMapCord = new Point(3, 0);
+            realMapPosition = new Vector2(890, 470);
+            Level.map.Add(new MapRoom());
+            Level.map[^1].visited = true;
+            Level.map[^1].CountPos(realMapPosition, -1);
+            roomMapCord = new Point(5, 5);
             CountRoomSize(0);
             doors.Add(new Door());
-            Level.AddRoom(GetPosibleWay(roomMapCord, 0), 0);
-            doors[0].InitDoor(0, Position);
+            var door = Rand.Next(0, 3);
+            Level.AddRoom(GetPosibleWay(roomMapCord, door), door, GetMapWay(door, realMapPosition));
+            Level.map.Add(new MapRoom());
+            Level.map[^1].CountPos(GetMapWay(door, realMapPosition), door);
+            Level.map[^1].mayVisited = true;
+            doors[0].InitDoor(door, Position);
             doors[0].WayToRoomNumChange(1);
         }
 
@@ -153,19 +231,22 @@ namespace BulletHell
             doors[^1].InitDoor(wall, Position);
         }
 
-        public void InitRoom(int roomInd, Point mapCord, int doorWallId)
+        public void InitRoom(int roomInd, Point mapCord, int doorWallId, Vector2 realMapPos)
         {
             roomMapCord = mapCord;
+            realMapPosition = realMapPos;
             CountRoomSize(roomInd);
 
             if (doorWallId % 2 == 0)
-                Level.rooms[Level.levelMap[mapCord.X, mapCord.Y]].AddDoor(doorWallId + 1);
+                Level.rooms[Level.initLevelMap[mapCord.X, mapCord.Y]].AddDoor(doorWallId + 1);
             else
                     if (doorWallId % 2 == 1)
-                Level.rooms[Level.levelMap[mapCord.X, mapCord.Y]].AddDoor(doorWallId - 1);
+                Level.rooms[Level.initLevelMap[mapCord.X, mapCord.Y]].AddDoor(doorWallId - 1);
 
             var flag = false;
-            for (int i = 0; i < Rand.Next(2, 4); i++)
+            var doorCount = Rand.Next(2, 6);
+            if (doorCount > 4) doorCount = 4;
+            for (int i = 0; i < doorCount; i++)
             {
                 flag = false;
                 foreach (var dr in doors)
@@ -175,19 +256,20 @@ namespace BulletHell
                         (dr.GetWall() == (Door.WallId)i) ||
                         (GetPosibleWay(mapCord, i).X < 0) ||
                         (GetPosibleWay(mapCord, i).Y < 0) ||
-                        (Level.levelMap[GetPosibleWay(mapCord, i).X, GetPosibleWay(mapCord, i).Y] != int.MaxValue) ||
-                        (Level.levelMap[GetPosibleWay(mapCord, i).X, GetPosibleWay(mapCord, i).Y] == -1)
+                        (Level.initLevelMap[GetPosibleWay(mapCord, i).X, GetPosibleWay(mapCord, i).Y] != int.MaxValue) ||
+                        (Level.initLevelMap[GetPosibleWay(mapCord, i).X, GetPosibleWay(mapCord, i).Y] == -1)
                     )
                     {
                         flag = true;
                     }
                 }
                 if (flag == true) continue;
-                if (Level.rooms.Count + Level.queue.Count < 20)
+                if (Level.rooms.Count + Level.queue.Count < 30)
                 {
                     doors.Add(new Door());
-                    Level.queue.Enqueue(new NotInitRoom(i, GetPosibleWay(mapCord, i)));
-                    Level.levelMap[GetPosibleWay(mapCord, i).X, GetPosibleWay(mapCord, i).Y] = -1;
+                    Level.queue.Enqueue(new NotInitRoom(i, GetPosibleWay(mapCord, i), GetMapWay(i, realMapPosition)));
+                    Level.initLevelMap[GetPosibleWay(mapCord, i).X, GetPosibleWay(mapCord, i).Y] = -1;
+
                     doors[^1].InitDoor(i, Position);
                 }
             }
@@ -205,8 +287,11 @@ namespace BulletHell
                     chests[0].closed = true;
                 chests[0].UpdatePos(new Vector2(Level.windowWidth / 2 - Chest.Texture2D.Width, Level.windowHeight / 2 - Chest.Texture2D.Height));
             }
-            //else if (roomInd != Level.MaxRoomInd)
-
+            else if (roomInd != Level.MaxRoomInd && roomInd != 0)
+            {
+                enemy.Add(new SimpleEnem());
+                enemy[^1].UpdatePos(new Vector2(Level.windowWidth / 2 - SimpleEnem.Texture2D.Width, Level.windowHeight / 2 - SimpleEnem.Texture2D.Height));
+            }
         }
 
         public void CountRoomSize(int roomInd)
@@ -217,10 +302,10 @@ namespace BulletHell
                 Position = new Vector2(Rand.Next(100, 600), Rand.Next(100, 300));
             vertexPositionColorsHorisontal = new[]
             {
-                new VertexPositionColor(new Vector3(Position.X, Position.Y, 0), Color.White),
-                new VertexPositionColor(new Vector3(Level.windowWidth - Position.X, Position.Y, 0), Color.White),
-                new VertexPositionColor(new Vector3(Position.X, Level.windowHeight-Position.Y, 0), Color.White),
-                new VertexPositionColor(new Vector3(Level.windowWidth - Position.X, Level.windowHeight-Position.Y, 0), Color.White)
+                new VertexPositionColor(new Vector3(Position.X, Position.Y, 0), Color.Black),
+                new VertexPositionColor(new Vector3(Level.windowWidth - Position.X, Position.Y, 0), Color.Black),
+                new VertexPositionColor(new Vector3(Position.X, Level.windowHeight-Position.Y, 0), Color.Black),
+                new VertexPositionColor(new Vector3(Level.windowWidth - Position.X, Level.windowHeight-Position.Y, 0), Color.Black)
             };
 
             vertexPositionColorsVertical = new[]
@@ -236,7 +321,9 @@ namespace BulletHell
         {
             foreach (EffectPass pass in effectPassCollection)
             {
+                var roomBorders = new Rectangle((int)this.Position.X, (int)this.Position.Y, Level.windowWidth - (int)Position.X * 2, Level.windowHeight - (int)Position.Y * 2);
                 pass.Apply();
+                Objects.spriteBatch.Draw(Level.Floor, Position, roomBorders,Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
                 graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertexPositionColorsHorisontal, 0, 2);
                 graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertexPositionColorsVertical, 0, 2);
             }
@@ -248,6 +335,24 @@ namespace BulletHell
             {
                 ch.Draw();
             }
+            foreach (var en in enemy)
+            {
+                en.Draw();
+            }
+        }
+
+        static public Vector2 GetMapWay(int doorId, Vector2 position)
+        {
+            if (doorId == 0)
+                return new Vector2(position.X + 80, position.Y);
+            if (doorId == 1)
+                return new Vector2(position.X - 80, position.Y);
+            if (doorId == 2)
+                return new Vector2(position.X, position.Y - 80);
+            if (doorId == 3)
+                return new Vector2(position.X, position.Y + 80);
+            else
+                return new Vector2(position.X, position.Y);
         }
 
         static public Point GetPosibleWay(Point mapId, int doorId)
@@ -384,18 +489,111 @@ namespace BulletHell
     public struct NotInitRoom
     {
         public int doorId;
-
+        public Vector2 realMapPos;
         public Point mapId;
 
-        public NotInitRoom(int doorId, Point mapId)
+        public NotInitRoom(int doorId, Point mapId, Vector2 realMapPos)
         {
             this.doorId = doorId;
             this.mapId = mapId;
+            this.realMapPos = realMapPos;
         }
 
         public void Init()
         {
-            Level.AddRoom(mapId, doorId);
+            Level.AddRoom(mapId, doorId, realMapPos);
+        }
+    }
+
+    class MapRoom 
+    {
+        VertexPositionColor[] vertexPositionColorsHorisontal;
+        VertexPositionColor[] vertexPositionColorsVertical;
+        VertexPositionColor[] vertexPositionColorsCoridor;
+        public bool visited;
+        public bool mayVisited;
+        Vector2 position;
+
+        public Vector2 GetPos()
+        {
+            return position;
+        }
+        public void CountPos(Vector2 position, int doorID)
+        {
+            this.position = position;
+            vertexPositionColorsHorisontal = new[]
+            {
+                new VertexPositionColor(new Vector3(position.X, position.Y, 0), Color.Black),
+                new VertexPositionColor(new Vector3(position.X + 70, position.Y, 0), Color.Black),
+                new VertexPositionColor(new Vector3(position.X, position.Y + 70, 0), Color.Black),
+                new VertexPositionColor(new Vector3(position.X + 70, position.Y + 70, 0), Color.Black)
+            };
+
+            vertexPositionColorsVertical = new[]
+            {
+                vertexPositionColorsHorisontal[0],
+                vertexPositionColorsHorisontal[2],
+                vertexPositionColorsHorisontal[1],
+                vertexPositionColorsHorisontal[3]
+            };
+            if (doorID % 2 == 0)
+                doorID++;
+            else
+                doorID--;
+            vertexPositionColorsCoridor = new[]
+            {
+                new VertexPositionColor(GetCorPos(doorID, position)[0], Color.Black),
+                new VertexPositionColor(GetCorPos(doorID, position)[1], Color.Black)
+            };
+        }
+
+        private Vector3[] GetCorPos(int doorID, Vector2 position)
+        {
+            Vector3 start = Vector3.Zero;
+            Vector3 end = Vector3.Zero;
+            if (doorID == 0) 
+            {
+                start = new Vector3(position.X + 70, position.Y + 35, 0);
+                end = new Vector3(position.X + 80, position.Y + 35, 0);
+            }              
+            if (doorID == 1) 
+            {
+                start = new Vector3(position.X , position.Y + 35, 0);
+                end = new Vector3(position.X - 10, position.Y + 35, 0);
+            }             
+            if (doorID == 2) 
+            {
+                start = new Vector3(position.X + 35, position.Y, 0);
+                end = new Vector3(position.X + 35, position.Y - 10, 0);
+            }               
+            if (doorID == 3) 
+            {
+                start = new Vector3(position.X + 35, position.Y + 70, 0);
+                end = new Vector3(position.X + 35, position.Y + 80, 0);
+            }             
+            return new Vector3[2] { start, end };
+        }
+
+        public void Draw(GraphicsDevice graphicsDevice, BasicEffect effect)
+        {
+            effect.VertexColorEnabled = true;
+            foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertexPositionColorsHorisontal, 0, 2);
+                graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertexPositionColorsVertical, 0, 2);
+                DrawCoridor(graphicsDevice, effect);
+            }
+        }
+
+        public void DrawCoridor(GraphicsDevice graphicsDevice, BasicEffect effect)
+        {
+            effect.VertexColorEnabled = true;
+            foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertexPositionColorsCoridor, 0, 1);
+            }
         }
     }
 }
