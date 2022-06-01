@@ -11,16 +11,19 @@ namespace BulletHell
     {
 
         static Vector2 Position = new Vector2(10,10);
-        static int HP = 10;
+        static int HP = 25;
+        static int maxHP = 25;
         static int coins;
-        static int reloadTimer = 0;
+        static float reloadTimer = 0;
         static bool isReloaded = true;
+        public static int weaponInHand = 0;
+        static public readonly List<IWeapon> inventory = new List<IWeapon>();
         public static Texture2D Texture2D { get; set; }
         private static Point TextureSize;
 
         public static void Reload()
         {
-            if (reloadTimer < 30)
+            if (reloadTimer < inventory[weaponInHand].GetReloadSpeed())
             {
                 isReloaded = false;
                 reloadTimer++;
@@ -63,7 +66,14 @@ namespace BulletHell
 
         public static void ChengeHP(int shift)
         {
-            HP += shift;
+            if (HP + shift <= maxHP)
+                HP += shift;
+            else
+                HP = maxHP;
+        }
+        public static void ChengeMaxHP(int shift)
+        {
+            maxHP += shift;
         }
 
         public static int GetCoinsValue()

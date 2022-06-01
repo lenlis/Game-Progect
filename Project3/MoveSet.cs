@@ -46,8 +46,26 @@ namespace BulletHell
 
         static public void Soot() 
         {
-            Objects.Fire();
+            Hero1.inventory[Hero1.weaponInHand].Shoot();
             Hero1.Reload();
+        }
+
+        static public void ChangeWeapon(long shift)
+        {
+            if (shift < 0)
+            {
+                if (Hero1.weaponInHand != 0)
+                    Hero1.weaponInHand--;
+                else
+                    Hero1.weaponInHand = Hero1.inventory.Count() - 1;
+            }
+            else
+            {
+                if (Hero1.weaponInHand != Hero1.inventory.Count() - 1)
+                    Hero1.weaponInHand++;
+                else
+                    Hero1.weaponInHand = 0;
+            }
         }
     }
 }

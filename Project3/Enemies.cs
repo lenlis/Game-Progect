@@ -9,7 +9,7 @@ namespace BulletHell
         public static Texture2D Texture2D { get; set; }
         private static Point TextureSize;
         private int cicle = 1;
-        private int HP = 1;
+        private float HP = 6;
         private int fireTimer = 1;
         private bool flag = false;
 
@@ -25,11 +25,11 @@ namespace BulletHell
         }
 
 
-        public void ChengeHP(int shift)
+        public void ChengeHP(float shift)
         {
             HP += shift;
         }
-        public int GetHP()
+        public float GetHP()
         {
             return HP;
         }
@@ -50,7 +50,8 @@ namespace BulletHell
 
             if (fireTimer == 0)
             {
-                Objects.EnFire(GetPos());
+                Objects.CreateProj(GetPos(),new Point((int)Hero1.GetPos().X, (int)Hero1.GetPos().Y),
+                    Objects.ProjTexture2D, 2.5f, Level.rooms[Level.GetHeroInRoomValue()].enProjectiles, true, 0, 0);
                 fireTimer++;
             }
             else

@@ -11,16 +11,12 @@ namespace BulletHell
     {
         Vector2 Position;
         static public SpriteBatch spriteBatch = Objects.spriteBatch;
-
         bool isSecCondition;
         
-
         public Vector2 GetPos()
         {
             return Position;
-        }
-
-        
+        }       
 
         public void ChengeCondition(bool cond)
         {
@@ -32,14 +28,10 @@ namespace BulletHell
             return isSecCondition;
         }
 
-        
-
         public void UpdatePos(Vector2 Pos)
         {
             Position.X = Pos.X;
             Position.Y = Pos.Y;
         }
-
-
     }
 }

@@ -13,25 +13,12 @@ namespace BulletHell
         static public int windowHeight;   
         static public SpriteBatch spriteBatch;
         public static Vector2 Position = new Vector2();
-        public static readonly List<Projectile> projectiles = new List<Projectile>();
-        static readonly List<Projectile> enProjectiles = new List<Projectile>();
-        static readonly List<Coin> coins = new List<Coin>();
+        
         public static bool HeroDirIsRirht;
+        public static Texture2D ProjTexture2D { get; set; }
 
-        public static void DelAllProj()
-        {
-            for (int i = 0; i < projectiles.Count; i++)
-            { 
-                    projectiles.RemoveAt(i);
-                    i--;
-            }
-            for (int i = 0; i < enProjectiles.Count; i++)
-            {
-                enProjectiles.RemoveAt(i);
-                i--;
-            }
-
-        }
+        
+        
         public static void Init(SpriteBatch spriteBatch, int Width, int Height)
         {
             windowWidth = Width;
@@ -39,56 +26,53 @@ namespace BulletHell
             Objects.spriteBatch = spriteBatch;
         }
 
-        public static void AddCoins(Vector2 Pos)
+        public static void AddCoins(Vector2 Pos, List<Coin> coins)
         {
             coins.Add(new Coin());
             coins[^1].UpdatePos(Pos);
         }
-        public static void Fire()
+        public static void CreateProj(Vector2 pos, Point target, Texture2D texture, float speed,
+            List<Projectile> projectiles, bool isEnPrj, float damage, float deflection)
         {
-            projectiles.Add(new Projectile());
-            projectiles[^1].InitTexture();
-            if (Mouse.GetState().X > Hero1.GetPos().X + 30)
+            var start = new Vector2(pos.X + Hero1.Texture2D.Width/2, pos.Y + Hero1.Texture2D.Height/2);
+            if (target.X > pos.X + 30)
             {
-                projectiles[^1].position = new Vector2(Hero1.GetPos().X + 35, Hero1.GetPos().Y + 30);
-                projectiles[^1].startPos = new Vector2(Hero1.GetPos().X + 35, Hero1.GetPos().Y + 30);
-                HeroDirIsRirht = true;
+                projectiles.Add(new Projectile()
+                {
+                    damage = damage,
+                    Texture = texture,
+                    speed = speed,
+                    deflection = deflection,
+                    position = start,
+                    startPos = start,
+                    cursorePos = target,
+                    targetIsRight = true,
+                    enemyPrj = isEnPrj
+                }) ;
+
             }
             else
             {
-                projectiles[^1].position = new Vector2(Hero1.GetPos().X + 15, Hero1.GetPos().Y + 30);
-                projectiles[^1].startPos = new Vector2(Hero1.GetPos().X + 15, Hero1.GetPos().Y + 30);
-                HeroDirIsRirht = false;
-            }
-            
-            projectiles[^1].cursorePos = new Point(Mouse.GetState().X, Mouse.GetState().Y);
+                projectiles.Add(new Projectile() {
+                    damage = damage,
+                    Texture = texture,
+                    speed = speed,
+                    deflection = deflection,
+                    position = start,
+                    startPos = start,
+                    cursorePos = target,
+                    targetIsRight = false,
+                    enemyPrj = isEnPrj
+                });
+            }           
         }
 
-        public static void EnFire(Vector2 enPos)
+        public static void Update(List<Projectile> projectiles, List<Projectile> enProjectiles, List<Coin> coins)
         {
-            enProjectiles.Add(new Projectile());
-            enProjectiles[^1].enemyPrj = true;
-            enProjectiles[^1].InitTexture();
-            if (Hero1.GetPos().X > enPos.X + 30)
-            {
-                enProjectiles[^1].position = new Vector2(enPos.X + 30, enPos.Y + 60);
-                enProjectiles[^1].startPos = new Vector2(enPos.X + 30, enPos.Y + 60);
-            }
-            else
-            {
-                enProjectiles[^1].position = new Vector2(enPos.X + 30, enPos.Y + 60);
-                enProjectiles[^1].startPos = new Vector2(enPos.X + 30, enPos.Y + 60);
-            }
-
-            enProjectiles[^1].cursorePos = new Point((int)Hero1.GetPos().X, (int)Hero1.GetPos().Y);
-        }
-
-        public static void Update()
-        {
-            for(int i = 0; i < projectiles.Count; i++)
+            for (int i = 0; i < projectiles.Count; i++)
             {
                 projectiles[i].Update();
-                if (projectiles[i].Hiden || projectiles[i].forceTic > 5)
+                if (projectiles[i].Hiden || projectiles[i].forceTic > Hero1.inventory[Hero1.weaponInHand].GetForceTic())
                 {
                     projectiles.RemoveAt(i);
                     i--;
@@ -122,26 +106,8 @@ namespace BulletHell
                     Hero1.ChengeCoinsValue(1);
                 }
             }
-
         }
-
-        static public void Draw()
-        {
-            foreach (Coin coin in coins)
-            {
-                coin.Draw();
-            }
-
-            foreach (Projectile proj in projectiles)
-            {
-                proj.Draw();
-            }
-
-            foreach (Projectile proj in enProjectiles)
-            {
-                proj.Draw();
-            }
-        }
+        
     }
 
     public class Projectile
@@ -150,16 +116,17 @@ namespace BulletHell
         public Vector2 position = new Vector2();
         public Vector2 startPos = new Vector2();
         private float rotationAngle;
-        private float speed = 3;
+        public float speed;
+        public float deflection;
+        public float damage;
         public bool enemyPrj;
+        public bool targetIsRight;
         public int stopedTic;
         public bool damageGained = false;
         public int forceTic;
         Color color = Color.White;
         private Point TextureSize;
-
-        public static Texture2D Texture2D { get; set; }
-        public static Texture2D ProjTexture2D { get; set; }
+        
         public Texture2D Texture { get; set; }
         public bool Hiden
         {
@@ -174,19 +141,9 @@ namespace BulletHell
 
         public Rectangle GetCollusion()
         {
-            if (enemyPrj)
-                CountTextureSize(ProjTexture2D);
-            else
-                CountTextureSize(Texture2D);
+            CountTextureSize(Texture);
             return new Rectangle((int)position.X,
             (int)this.position.Y, TextureSize.X, TextureSize.Y);
-        }
-        public void InitTexture()
-        {
-            if(enemyPrj)
-            Texture = ProjTexture2D;
-            else
-            Texture = Texture2D;     
         }
 
         public void CountTextureSize(Texture2D texture)
@@ -210,7 +167,7 @@ namespace BulletHell
         {
             var angle = Math.Atan2(cursorePos.Y - startPos.Y, cursorePos.X - startPos.X);
             rotationAngle = (float)angle;
-            var dir = new Vector2((float)(Math.Cos(angle) * 5), (float)(Math.Sin(angle) * 5));
+            var dir = new Vector2((float)(Math.Cos(angle + deflection) * 5), (float)(Math.Sin(angle + deflection) * 5));
             return dir;
         }
 
@@ -245,7 +202,7 @@ namespace BulletHell
         {
             ChengeCondition(true);
             for(int i = 0; i < rand.Next(1, 20); i++)
-                Objects.AddCoins(GetPos());
+                Objects.AddCoins(GetPos(), Level.rooms[Level.GetHeroInRoomValue()].coins);
         }
 
         public Rectangle GetCollusion()

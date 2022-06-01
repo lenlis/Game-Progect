@@ -57,8 +57,9 @@ namespace BulletHell
             map = Content.Load<Texture2D>("map");
             band = Content.Load<Texture2D>("band");
             Objects.Init(spriteBatch, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
-            Projectile.Texture2D = Content.Load<Texture2D>("bullet");
-            Projectile.ProjTexture2D = Content.Load<Texture2D>("projactale");
+            SimpleShotGun.PrjTexture = Content.Load<Texture2D>("bullet");
+            Pistol.PrjTexture = Content.Load<Texture2D>("bullet");
+            Objects.ProjTexture2D = Content.Load<Texture2D>("projactale");
             Coin.Texture2D = Content.Load<Texture2D>("coin");
             Coin.CountTextureSize(new Point(Coin.Texture2D.Width, Coin.Texture2D.Height));
             SimpleEnem.Texture2D = Content.Load<Texture2D>("projactale");
@@ -68,8 +69,12 @@ namespace BulletHell
             Door.Texture2D = Content.Load<Texture2D>("door");
             Door.SecTexture2D = Content.Load<Texture2D>("doorUD");
             Door.CountTextureSize(new Point(Door.Texture2D.Width, Door.Texture2D.Height), new Point(Door.SecTexture2D.Width, Door.SecTexture2D.Height));
-            Level.marker = Content.Load<Texture2D>("marker");
+            Level.Marker = Content.Load<Texture2D>("marker");
+            Level.Torch = Content.Load<Texture2D>("torch");
             Level.Floor = Content.Load<Texture2D>("floor");
+            Level.Wall = Content.Load<Texture2D>("wall");
+            Hero1.inventory.Add(new Pistol());
+            Hero1.inventory.Add(new SimpleShotGun());
             Level.InitLevel(GraphicsDevice, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
             var vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor),
             4, BufferUsage.None);
@@ -85,6 +90,7 @@ namespace BulletHell
 
         MouseState mouseState, oldMouseState;
         KeyboardState keyboardState, oldKeyboardState;
+        long scrolWalue;
         protected override void Update(GameTime gameTime)
         {
             if (IsActive)
@@ -98,15 +104,18 @@ namespace BulletHell
                     }
                     keyboardState = Keyboard.GetState();
                     mouseState = Mouse.GetState();
-                    Objects.Update();
+
                     Level.Update();
                     if (keyboardState.IsKeyDown(Keys.W)) MoveSet.MoveUp();
                     if (keyboardState.IsKeyDown(Keys.S)) MoveSet.MoveDown();
                     if (keyboardState.IsKeyDown(Keys.D)) MoveSet.MoveRight();
                     if (keyboardState.IsKeyDown(Keys.A)) MoveSet.MoveLeft();
+                    var scrolShift = scrolWalue - mouseState.ScrollWheelValue;
+                    if (scrolShift < 0 || scrolShift > 0)
+                        MoveSet.ChangeWeapon(scrolShift);
                     if (Hero1.IsWeapReloaded()) 
                     {
-                        if (((int)mouseState.LeftButton == 1) && ((int)oldMouseState.LeftButton == 0))
+                        if ((int)mouseState.LeftButton == 1)
                         {
                             MoveSet.Soot();
                         }                           
@@ -119,6 +128,7 @@ namespace BulletHell
                         State = GameState.Map;
                     oldKeyboardState = keyboardState;
                     oldMouseState = mouseState;
+                    scrolWalue = mouseState.ScrollWheelValue;
                     base.Update(gameTime);
                 }
                 if (State == GameState.Map)
@@ -170,7 +180,7 @@ namespace BulletHell
         {
             if (State == GameState.GameLevel)
             {
-                GraphicsDevice.Clear(Color.DarkGray);
+                GraphicsDevice.Clear(Color.Black);
                 spriteBatch.Begin(SpriteSortMode.BackToFront);
                 spriteBatch.DrawString(font, Hero1.GetHP().ToString(), new Vector2(55, 15), Color.White);
                 spriteBatch.Draw(band, new Vector2(5, 5), null, Color.White, 0, Vector2.Zero, 0.6f, SpriteEffects.None, 0);
@@ -180,14 +190,13 @@ namespace BulletHell
                     spriteBatch.Draw(Hero1.Texture2D, Hero1.GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.FlipHorizontally, 0);
                 else
                     spriteBatch.Draw(Hero1.Texture2D, Hero1.GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0); 
-                Objects.Draw();
                 Level.Draw(GraphicsDevice, effectPassCollection);
                 spriteBatch.End();
                 base.Draw(gameTime);
             }
             if (State == GameState.Map)
             {
-                GraphicsDevice.Clear(Color.DarkGray);
+                GraphicsDevice.Clear(Color.Black);
                 spriteBatch.Begin();
                 spriteBatch.Draw(map, new Vector2(210, -1), null, Color.White, 0, Vector2.Zero, 2f, SpriteEffects.None, 0);
                 spriteBatch.End();
@@ -205,7 +214,7 @@ namespace BulletHell
             }
             if (State == GameState.MainMenu)
             {
-                GraphicsDevice.Clear(Color.DarkGray);
+                GraphicsDevice.Clear(Color.Black);
                 spriteBatch.Begin();
                 MainMenu.Draw(spriteBatch);
                 spriteBatch.End();

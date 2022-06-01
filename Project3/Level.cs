@@ -9,8 +9,10 @@ namespace BulletHell
     {
         static public int windowWidth;
         static public int windowHeight;
-        static public Texture2D marker;
+        static public Texture2D Marker { get; set; }
+        static public Texture2D Torch { get; set; }
         static public Texture2D Floor { get; set; }
+        static public Texture2D Wall { get; set; }
         static public Vector2 roomPos;
         static public int MaxRoomInd = 20;
         static private int HeroInRoom;
@@ -109,6 +111,7 @@ namespace BulletHell
 
         public static void Update()
         {
+            Objects.Update(rooms[HeroInRoom].projectiles, rooms[HeroInRoom].enProjectiles, rooms[HeroInRoom].coins);
             foreach (var ch in rooms[HeroInRoom].chests)
             {
                 if (ch.GetCollusion().Intersects(Hero1.CountCollusion()) && !ch.GetCondition() && !ch.closed)
@@ -119,22 +122,22 @@ namespace BulletHell
                 var en = rooms[HeroInRoom].enemy[i];
                 if (en.GetHP() <= 0)
                 {
-                    Objects.AddCoins(en.GetPos());
+                    Objects.AddCoins(en.GetPos(), rooms[HeroInRoom].coins);
                     rooms[HeroInRoom].enemy.RemoveAt(i);
                     i--;
                 }
                 en.Update();
-                for (int j = 0; j < Objects.projectiles.Count; j++)
+                for (int j = 0; j < rooms[HeroInRoom].projectiles.Count; j++)
                 {
-                    if (Objects.projectiles[j].GetCollusion().Intersects(en.GetCollusion()))
+                    if (rooms[HeroInRoom].projectiles[j].GetCollusion().Intersects(en.GetCollusion()))
                     {
-                        Objects.projectiles[j].Texture = Game1.empty;
-                        en.UpdatePos(en.GetPos() + Objects.projectiles[j].CalcDir()*2);
-                        if(!Objects.projectiles[j].damageGained) 
+                        rooms[HeroInRoom].projectiles[j].Texture = Game1.empty;
+                        en.UpdatePos(en.GetPos() + rooms[HeroInRoom].projectiles[j].CalcDir()* rooms[HeroInRoom].projectiles[j].speed);
+                        if(!rooms[HeroInRoom].projectiles[j].damageGained) 
                         {
-                            Objects.projectiles[j].damageGained = true;
+                            rooms[HeroInRoom].projectiles[j].damageGained = true;
+                            en.ChengeHP(-rooms[HeroInRoom].projectiles[j].damage);
                             j--;
-                            en.ChengeHP(-1);
                         }
                     }
                 }
@@ -146,7 +149,6 @@ namespace BulletHell
                 {
                     var id = dr.GetWayToRoomNum();
                     roomPos = new Vector2(rooms[id].GetPos().X, rooms[id].GetPos().Y);
-                    Objects.DelAllProj();
                     foreach (var door in rooms[id].doors)
                     {
                             map[door.GetWayToRoomNum()].mayVisited = true;
@@ -176,7 +178,7 @@ namespace BulletHell
                 if (i == HeroInRoom)
                 {
                     Objects.spriteBatch.Begin();
-                    Objects.spriteBatch.Draw(marker, new Vector2(map[i].GetPos().X - 15, map[i].GetPos().Y - 15),
+                    Objects.spriteBatch.Draw(Marker, new Vector2(map[i].GetPos().X - 15, map[i].GetPos().Y - 15),
                         null, Color.White, 0, Vector2.Zero, 0.25f, SpriteEffects.None, 1);
                     Objects.spriteBatch.End();
                 }
@@ -193,9 +195,13 @@ namespace BulletHell
         public Point roomMapCord;
         VertexPositionColor[] vertexPositionColorsHorisontal;
         VertexPositionColor[] vertexPositionColorsVertical;
+        VertexPositionColor[] vertexPositionColorsVerticalWall;
+        VertexPositionColor[] vertexPositionColorsHorisontalWall;
         Vector2 Position;
         Vector2 realMapPosition;
-        readonly List<Coin> coins = new List<Coin>();
+        public readonly List<Projectile> projectiles = new List<Projectile>();
+        public readonly List<Projectile> enProjectiles = new List<Projectile>();
+        public readonly List<Coin> coins = new List<Coin>();
         public List<Chest> chests = new List<Chest>();
         public List<SimpleEnem> enemy = new List<SimpleEnem>();
         public List<Door> doors = new List<Door>();
@@ -315,17 +321,40 @@ namespace BulletHell
                 vertexPositionColorsHorisontal[1],
                 vertexPositionColorsHorisontal[3]
             };
+            vertexPositionColorsHorisontalWall = new[]
+            {
+                 new VertexPositionColor(new Vector3(Position.X, Position.Y - Door.SecTexture2D.Height-2, 0), Color.Black),
+                new VertexPositionColor(new Vector3(Level.windowWidth - Position.X, Position.Y - Door.SecTexture2D.Height-2, 0), Color.Black),
+                vertexPositionColorsHorisontal[2],
+                vertexPositionColorsHorisontal[3]
+            };
+            vertexPositionColorsVerticalWall = new[]
+            {
+                vertexPositionColorsHorisontalWall[0],
+                vertexPositionColorsHorisontalWall[2],
+                vertexPositionColorsHorisontalWall[1],
+                vertexPositionColorsHorisontalWall[3]
+            };
         }
 
         public void Draw(GraphicsDevice graphicsDevice, EffectPassCollection effectPassCollection)
         {
             foreach (EffectPass pass in effectPassCollection)
             {
-                var roomBorders = new Rectangle((int)this.Position.X, (int)this.Position.Y, Level.windowWidth - (int)Position.X * 2, Level.windowHeight - (int)Position.Y * 2);
+                var floorBorders = new Rectangle((int)this.Position.X, (int)this.Position.Y, 
+                    Level.windowWidth - (int)Position.X * 2, Level.windowHeight - (int)Position.Y * 2);
+                var wallBorders = new Rectangle((int)this.Position.X, (int)this.Position.Y - Door.SecTexture2D.Height, 
+                    Level.windowWidth - (int)Position.X * 2, Door.SecTexture2D.Height - 1);
                 pass.Apply();
-                Objects.spriteBatch.Draw(Level.Floor, Position, roomBorders,Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                Objects.spriteBatch.Draw(Level.Torch, new Vector2(Position.X, Position.Y - Door.SecTexture2D.Height), 
+                    null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.FlipHorizontally, 0.9f);
+                Objects.spriteBatch.Draw(Level.Floor, Position, floorBorders, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                Objects.spriteBatch.Draw(Level.Wall, new Vector2(Position.X, Position.Y - Door.SecTexture2D.Height),
+                    wallBorders, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
                 graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertexPositionColorsHorisontal, 0, 2);
                 graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertexPositionColorsVertical, 0, 2);
+                graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertexPositionColorsHorisontalWall, 0, 2);
+                graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertexPositionColorsVerticalWall, 0, 2);
             }
             foreach (var dr in doors)
             {
@@ -338,6 +367,18 @@ namespace BulletHell
             foreach (var en in enemy)
             {
                 en.Draw();
+            }
+            foreach (Coin coin in coins)
+            {
+                coin.Draw();
+            }
+            foreach (Projectile proj in projectiles)
+            {
+                proj.Draw();
+            }
+            foreach (Projectile proj in enProjectiles)
+            {
+                proj.Draw();
             }
         }
 
@@ -464,13 +505,13 @@ namespace BulletHell
         public void Draw()
         {
             if (Wall == WallId.right)
-                Objects.spriteBatch.Draw(Texture2D, this.GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                Objects.spriteBatch.Draw(Texture2D, this.GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.9f);
             if (Wall == WallId.left)
-                Objects.spriteBatch.Draw(Texture2D, new Vector2(this.GetPos().X, this.GetPos().Y), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                Objects.spriteBatch.Draw(Texture2D, new Vector2(this.GetPos().X, this.GetPos().Y), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.9f);
             if (Wall == WallId.up)
-                Objects.spriteBatch.Draw(SecTexture2D, this.GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                Objects.spriteBatch.Draw(SecTexture2D, this.GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.9f);
             if (Wall == WallId.down)
-                Objects.spriteBatch.Draw(SecTexture2D, this.GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.FlipVertically, 1);
+                Objects.spriteBatch.Draw(SecTexture2D, this.GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.FlipVertically, 0.9f);
         }
 
         public Rectangle GetCollusion()
