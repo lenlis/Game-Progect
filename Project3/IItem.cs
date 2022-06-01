@@ -10,7 +10,7 @@ namespace BulletHell
     interface IItem
     {
         public static Texture2D ItemTexture { get; set; }
-
+        public Vector2 Position { get; set; }
         public void UseItem()
         {
 

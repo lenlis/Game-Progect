@@ -8,94 +8,10 @@ using System.Collections.Generic;
 namespace BulletHell
 {
 
-    public class Coin : GameObject
-    {
-        public static Texture2D Texture2D { get; set; }
-        private static Point TextureSize;
-
-        public static void CountTextureSize(Point size)
-        {
-            TextureSize = size;
-        }
-
-        public Rectangle GetCollusion()
-        {
-            return new Rectangle((int)this.GetPos().X,
-            (int)this.GetPos().Y, TextureSize.X, TextureSize.Y);
-        }
-
-        public void PullToHero()
-        {
-            UpdatePos(this.GetPos() + this.CalcDir()*3);
-        }
-
-        private Vector2 CalcDir()
-        {
-            var angle = Math.Atan2(Hero1.GetPos().Y - this.GetPos().Y, Hero1.GetPos().X - this.GetPos().X);
-            var dir = new Vector2((float)(Math.Cos(angle) * 5), (float)(Math.Sin(angle) * 5));
-            return dir;
-        }
-
-        public void Draw()
-        {
-                spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.5f);
-        }
-
-        public bool Garbed
-        {
-            get
-            {
-                return (GetCollusion().Intersects(Hero1.CountCollusion()));
-            }
-        }
-    }
-
-    public class Key : GameObject
-    {
-        public static Texture2D Texture2D { get; set; }
-        private static Point TextureSize;
-
-        public static void CountTextureSize(Point size)
-        {
-            TextureSize = size;
-        }
-
-        public Rectangle GetCollusion()
-        {
-            return new Rectangle((int)this.GetPos().X,
-            (int)this.GetPos().Y, TextureSize.X, TextureSize.Y);
-        }
-
-        public void PullToHero()
-        {
-            UpdatePos(this.GetPos() + this.CalcDir() * 3);
-        }
-
-        private Vector2 CalcDir()
-        {
-            var angle = Math.Atan2(Hero1.GetPos().Y - this.GetPos().Y, Hero1.GetPos().X - this.GetPos().X);
-            var dir = new Vector2((float)(Math.Cos(angle) * 5), (float)(Math.Sin(angle) * 5));
-            return dir;
-        }
-
-        public void Draw()
-        {
-            spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.5f);
-        }
-
-        public bool Garbed
-        {
-            get
-            {
-                return (GetCollusion().Intersects(Hero1.CountCollusion()));
-            }
-        }
-    }
-
     class HealPotion : IItem
     {
         public static Texture2D ItemTexture { get; set; }
-
+        public Vector2 Position { get; set; }
         public void UseItem()
         {
             Hero1.ChengeHP(Room.Rand.Next(5, 10));
@@ -105,7 +21,7 @@ namespace BulletHell
     class BigHealPotion : IItem
     {
         public static Texture2D ItemTexture { get; set; }
-
+        public Vector2 Position { get; set; }
         public void UseItem()
         {
             Hero1.ChengeHP(Room.Rand.Next(10, 20));
@@ -115,7 +31,7 @@ namespace BulletHell
     class StrangePotion : IItem
     {
         public static Texture2D ItemTexture { get; set; }
-
+        public Vector2 Position { get; set; }
         public void UseItem()
         {
             var chance = Room.Rand.Next(0, 100);
@@ -129,7 +45,7 @@ namespace BulletHell
     class RandomPotion : IItem
     {
         public static Texture2D ItemTexture { get; set; }
-
+        public Vector2 Position { get; set; }
         public void UseItem()
         {
             var chance = Room.Rand.Next(0, 100);
@@ -145,7 +61,7 @@ namespace BulletHell
     class Ammo : IItem
     {
         public static Texture2D ItemTexture { get; set; }
-
+        public Vector2 Position { get; set; }
         public void UseItem()
         {
             Hero1.inventory[Hero1.weaponInHand].AddAmmo(Hero1.inventory[Hero1.weaponInHand].GetPlusAmmo());
@@ -155,10 +71,142 @@ namespace BulletHell
     class Heart : IItem
     {
         public static Texture2D ItemTexture { get; set; }
-
+        public Vector2 Position { get; set; }
         public void UseItem()
         {
             Hero1.ChengeMaxHP(1);
+        }
+    }
+
+    class PistolItem : IItem
+    {
+        public static Texture2D ItemTexture { get; set; }
+        public Vector2 Position { get; set; }
+        public void UseItem()
+        {
+            Hero1.inventory.Add(new Pistol());
+            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+    }
+
+    class SimpleShotGunItem : IItem
+    {
+        public static Texture2D ItemTexture { get; set; }
+        public Vector2 Position { get; set; }
+        public void UseItem()
+        {
+            Hero1.inventory.Add(new SimpleShotGun());
+            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+    }
+
+    class CrosBowItem : IItem
+    {
+        public static Texture2D ItemTexture { get; set; }
+        public Vector2 Position { get; set; }
+        public void UseItem()
+        {
+            Hero1.inventory.Add(new CrosBow());
+            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+    }
+
+    class SubmachineGunItem : IItem
+    {
+        public static Texture2D ItemTexture { get; set; }
+        public Vector2 Position { get; set; }
+        public void UseItem()
+        {
+            Hero1.inventory.Add(new SubmachineGun());
+            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+    }
+
+    class MachineGunPistolItem : IItem
+    {
+        public static Texture2D ItemTexture { get; set; }
+        public Vector2 Position { get; set; }
+        public void UseItem()
+        {
+            Hero1.inventory.Add(new MachineGunPistol());
+            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+    }
+
+    class DeagleItem : IItem
+    {
+        public static Texture2D ItemTexture { get; set; }
+        public Vector2 Position { get; set; }
+        public void UseItem()
+        {
+            Hero1.inventory.Add(new Deagle());
+            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+    }
+
+    class PPSItem : IItem
+    {
+        public static Texture2D ItemTexture { get; set; }
+        public Vector2 Position { get; set; }
+        public void UseItem()
+        {
+            Hero1.inventory.Add(new PPS());
+            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+    }
+
+    class P2070Item : IItem
+    {
+        public static Texture2D ItemTexture { get; set; }
+        public Vector2 Position { get; set; }
+        public void UseItem()
+        {
+            Hero1.inventory.Add(new P2070());
+            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+    }
+
+    class SniperRifleItem : IItem
+    {
+        public static Texture2D ItemTexture { get; set; }
+        public Vector2 Position { get; set; }
+        public void UseItem()
+        {
+            Hero1.inventory.Add(new SniperRifle());
+            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+    }
+
+    class RifleItem : IItem
+    {
+        public static Texture2D ItemTexture { get; set; }
+        public Vector2 Position { get; set; }
+        public void UseItem()
+        {
+            Hero1.inventory.Add(new Rifle());
+            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+    }
+
+    class BenelleShotGunItem : IItem
+    {
+        public static Texture2D ItemTexture { get; set; }
+        public Vector2 Position { get; set; }
+        public void UseItem()
+        {
+            Hero1.inventory.Add(new BenelleShotGun());
+            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+    }
+
+    class RemingtonShotGunItem : IItem
+    {
+        public static Texture2D ItemTexture { get; set; }
+        public Vector2 Position { get; set; }
+        public void UseItem()
+        {
+            Hero1.inventory.Add(new BenelleShotGun());
+            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
         }
     }
 
@@ -839,7 +887,7 @@ namespace BulletHell
         }
     }
 
-    class RemongtonShotGun : IWeapon
+    class RemingtonShotGun : IWeapon
     {
         public static Texture2D GunTexture { get; set; }
         public static Texture2D PrjTexture { get; set; }

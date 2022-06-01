@@ -14,6 +14,7 @@ namespace BulletHell
         static int HP = 25;
         static int maxHP = 25;
         static int coins;
+        static int keys;
         static float reloadTimer = 0;
         static bool isReloaded = true;
         public static int weaponInHand = 0;
@@ -80,9 +81,20 @@ namespace BulletHell
         {
             return coins;
         }
+
+        public static int GetKeysValue()
+        {
+            return keys;
+        }
+
         public static void ChengeCoinsValue(int shift)
         {
             coins += shift;
+        }
+
+        public static void ChengeKeysValue(int shift)
+        {
+            keys += shift;
         }
     }
 }

@@ -10,8 +10,8 @@ namespace BulletHell
         private static Point TextureSize;
         private int cicle = 1;
         private float HP = 6;
-        private int fireTimer = 1;
-        private bool flag = false;
+        private int fireTimer = Room.Rand.Next(1, 20);
+        private int roundCicle = Room.Rand.Next(-1, 1);
 
         public bool NearWall
         {
@@ -34,7 +34,7 @@ namespace BulletHell
             return HP;
         }
 
-        public static void CountTextureSize(Point size)
+        public static void CountTextureSizeAndCicles(Point size)
         {
             TextureSize = size;
         }
@@ -50,20 +50,24 @@ namespace BulletHell
 
             if (fireTimer == 0)
             {
-                Objects.CreateProj(GetPos(),new Point((int)Hero1.GetPos().X, (int)Hero1.GetPos().Y),
+                Objects.CreateProj(GetPos(), new Point((int)Hero1.GetPos().X, (int)Hero1.GetPos().Y),
                     Objects.ProjTexture2D, 2.5f, Level.rooms[Level.GetHeroInRoomValue()].enProjectiles, true, 0, 0);
                 fireTimer++;
             }
             else
-                if (fireTimer == 50)
-                    fireTimer = 0;
-                else
-                    fireTimer++;
+                if (fireTimer == 80)
+                fireTimer = 0;
+            else
+                fireTimer += Room.Rand.Next(1, 2);
             UpdatePos(this.GetPos() + this.CalcDir()/3);
         }
 
         private Vector2 CalcDir()
         {
+            if (this.GetPos().Y > Objects.windowHeight - Texture2D.Height - Level.roomPos.Y)
+                roundCicle = 1;
+            if (this.GetPos().Y < Level.roomPos.Y - Hero1.Texture2D.Height)
+                roundCicle = -1;
             var angle = Math.Atan2(Hero1.GetPos().Y - this.GetPos().Y, Hero1.GetPos().X - this.GetPos().X);
             var dir = new Vector2((float)(Math.Cos(angle) * 5), (float)(Math.Sin(angle) * 5));
             var dir2 = new Vector2((float)(Math.Cos(1.57 + angle) * 5), (float)(Math.Sin(1.57 + angle) * 5));
@@ -71,18 +75,21 @@ namespace BulletHell
                 (Hero1.GetPos().Y - this.GetPos().Y) * (Hero1.GetPos().Y - this.GetPos().Y));
             var result = Vector2.Zero;
             if (length > 400 || NearWall)
+            {
                 cicle = 1;
-            else
-            if (length < 100)
-                cicle = -1;
-            result += dir * cicle;
-            if (this.GetPos().Y > Objects.windowHeight - Texture2D.Height - Level.roomPos.Y)
-                result += dir2;
-            if (this.GetPos().Y < Level.roomPos.Y - Hero1.Texture2D.Height)
-                result -= dir2;
 
+            }
+            else
+            if (length < 150)
+            {
+                cicle = -1;
+
+            }
+            result += dir * cicle + dir2 * roundCicle;
             return result;
         }
+
+
 
         public void Draw()
         {

@@ -57,13 +57,14 @@ namespace BulletHell
             map = Content.Load<Texture2D>("map");
             band = Content.Load<Texture2D>("band");
             Objects.Init(spriteBatch, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
-            SimpleShotGun.PrjTexture = Content.Load<Texture2D>("bullet");
-            Pistol.PrjTexture = Content.Load<Texture2D>("bullet");
+            RemingtonShotGun.PrjTexture = Content.Load<Texture2D>("bullet");
+            Deagle.PrjTexture = Content.Load<Texture2D>("bullet");
             Objects.ProjTexture2D = Content.Load<Texture2D>("projactale");
             Coin.Texture2D = Content.Load<Texture2D>("coin");
+            Key.Texture2D = Content.Load<Texture2D>("key");
             Coin.CountTextureSize(new Point(Coin.Texture2D.Width, Coin.Texture2D.Height));
             SimpleEnem.Texture2D = Content.Load<Texture2D>("projactale");
-            SimpleEnem.CountTextureSize(new Point(SimpleEnem.Texture2D.Width*2, SimpleEnem.Texture2D.Height*2));
+            SimpleEnem.CountTextureSizeAndCicles(new Point(SimpleEnem.Texture2D.Width*2, SimpleEnem.Texture2D.Height*2));
             Chest.Texture2D = Content.Load<Texture2D>("chestClosed");
             Chest.SecTexture2D = Content.Load<Texture2D>("chestOpened");
             Door.Texture2D = Content.Load<Texture2D>("door");
@@ -73,8 +74,8 @@ namespace BulletHell
             Level.Torch = Content.Load<Texture2D>("torch");
             Level.Floor = Content.Load<Texture2D>("floor");
             Level.Wall = Content.Load<Texture2D>("wall");
-            Hero1.inventory.Add(new Pistol());
-            Hero1.inventory.Add(new SimpleShotGun());
+            Hero1.inventory.Add(new Deagle());
+            Hero1.inventory.Add(new RemingtonShotGun());
             Level.InitLevel(GraphicsDevice, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
             var vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor),
             4, BufferUsage.None);

@@ -16,8 +16,11 @@ namespace BulletHell
         static public Vector2 roomPos;
         static public int MaxRoomInd = 20;
         static private int HeroInRoom;
+        static public int LevelCount = 0;
+        const int VerticalMapSize = 10;
+        const int HorisontalMapSize = 10;
         public static GraphicsDevice graphicsDevice;
-        public static int[,] initLevelMap = new int[10, 10];
+        public static int[,] initLevelMap = new int[VerticalMapSize, HorisontalMapSize];
         public static readonly List<MapRoom> map = new List<MapRoom>();
         public static readonly List<Room> rooms = new List<Room>();
         public static readonly List<int> posibleEndRooms = new List<int>();
@@ -36,13 +39,14 @@ namespace BulletHell
         }
         public static void InitLevel(GraphicsDevice graphicsDevice, int Width, int Height)
         {
+            LevelCount++;
             HeroInRoom = 0;
             Level.graphicsDevice = graphicsDevice;
             windowWidth = Width;
             windowHeight = Height;
-            for (int t = 0; t < 10; t++)
+            for (int t = 0; t < VerticalMapSize; t++)
             {
-                for (int u = 0; u < 10; u++)
+                for (int u = 0; u < HorisontalMapSize; u++)
                 {
                     initLevelMap[u, t] = int.MaxValue;
                 }
@@ -111,7 +115,7 @@ namespace BulletHell
 
         public static void Update()
         {
-            Objects.Update(rooms[HeroInRoom].projectiles, rooms[HeroInRoom].enProjectiles, rooms[HeroInRoom].coins);
+            Objects.Update(rooms[HeroInRoom].projectiles, rooms[HeroInRoom].enProjectiles, rooms[HeroInRoom].coins, rooms[HeroInRoom].keys);
             foreach (var ch in rooms[HeroInRoom].chests)
             {
                 if (ch.GetCollusion().Intersects(Hero1.CountCollusion()) && !ch.GetCondition() && !ch.closed)
@@ -122,7 +126,10 @@ namespace BulletHell
                 var en = rooms[HeroInRoom].enemy[i];
                 if (en.GetHP() <= 0)
                 {
-                    Objects.AddCoins(en.GetPos(), rooms[HeroInRoom].coins);
+                    if(Room.Rand.Next(0,100) <= 0)
+                        Objects.AddCoins(en.GetPos(), rooms[HeroInRoom].coins);
+                    else
+                        Objects.AddKey(en.GetPos(), rooms[HeroInRoom].keys);
                     rooms[HeroInRoom].enemy.RemoveAt(i);
                     i--;
                 }
@@ -197,11 +204,14 @@ namespace BulletHell
         VertexPositionColor[] vertexPositionColorsVertical;
         VertexPositionColor[] vertexPositionColorsVerticalWall;
         VertexPositionColor[] vertexPositionColorsHorisontalWall;
+        private List<Vector2> EnemyPositions = new List<Vector2>();
         Vector2 Position;
         Vector2 realMapPosition;
+        public readonly List<IItem> items = new List<IItem>();
         public readonly List<Projectile> projectiles = new List<Projectile>();
         public readonly List<Projectile> enProjectiles = new List<Projectile>();
         public readonly List<Coin> coins = new List<Coin>();
+        public readonly List<Key> keys = new List<Key>();
         public List<Chest> chests = new List<Chest>();
         public List<SimpleEnem> enemy = new List<SimpleEnem>();
         public List<Door> doors = new List<Door>();
@@ -295,8 +305,16 @@ namespace BulletHell
             }
             else if (roomInd != Level.MaxRoomInd && roomInd != 0)
             {
-                enemy.Add(new SimpleEnem());
-                enemy[^1].UpdatePos(new Vector2(Level.windowWidth / 2 - SimpleEnem.Texture2D.Width, Level.windowHeight / 2 - SimpleEnem.Texture2D.Height));
+                var enemMaxAmount = Rand.Next(2, 3*Level.LevelCount);
+                for (var i = 1; i <= enemMaxAmount; i++)
+                {
+                    if (EnemyPositions.Count == 0)
+                        return;
+                    enemy.Add(new SimpleEnem());
+                    var posNum = Rand.Next(0, EnemyPositions.Count - 1);
+                    enemy[^1].UpdatePos(EnemyPositions[posNum]);
+                    EnemyPositions.RemoveAt(posNum);
+                }
             }
         }
 
@@ -335,6 +353,10 @@ namespace BulletHell
                 vertexPositionColorsHorisontalWall[1],
                 vertexPositionColorsHorisontalWall[3]
             };
+
+            for(var i = Position.X * 2; i <= Level.windowWidth - Position.X * 2;i += Position.X)
+                for (var j = Position.Y * 2; j <= Level.windowHeight - Position.Y * 2; j += Position.Y)
+                    EnemyPositions.Add(new Vector2(i, j));
         }
 
         public void Draw(GraphicsDevice graphicsDevice, EffectPassCollection effectPassCollection)
@@ -368,15 +390,19 @@ namespace BulletHell
             {
                 en.Draw();
             }
-            foreach (Coin coin in coins)
+            foreach (var coin in coins)
             {
                 coin.Draw();
             }
-            foreach (Projectile proj in projectiles)
+            foreach (var key in keys)
+            {
+                key.Draw();
+            }
+            foreach (var proj in projectiles)
             {
                 proj.Draw();
             }
-            foreach (Projectile proj in enProjectiles)
+            foreach (var proj in enProjectiles)
             {
                 proj.Draw();
             }
@@ -409,6 +435,8 @@ namespace BulletHell
             else
                 return new Point(-1, -1);
         }
+
+
     }
 
     class Door : GameObject

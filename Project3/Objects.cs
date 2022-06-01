@@ -31,6 +31,13 @@ namespace BulletHell
             coins.Add(new Coin());
             coins[^1].UpdatePos(Pos);
         }
+
+        public static void AddKey(Vector2 Pos, List<Key> keys)
+        {
+            keys.Add(new Key());
+            keys[^1].UpdatePos(Pos);
+        }
+
         public static void CreateProj(Vector2 pos, Point target, Texture2D texture, float speed,
             List<Projectile> projectiles, bool isEnPrj, float damage, float deflection)
         {
@@ -67,7 +74,7 @@ namespace BulletHell
             }           
         }
 
-        public static void Update(List<Projectile> projectiles, List<Projectile> enProjectiles, List<Coin> coins)
+        public static void Update(List<Projectile> projectiles, List<Projectile> enProjectiles, List<Coin> coins, List<Key> keys)
         {
             for (int i = 0; i < projectiles.Count; i++)
             {
@@ -104,6 +111,17 @@ namespace BulletHell
                     coins.RemoveAt(i);
                     i--;
                     Hero1.ChengeCoinsValue(1);
+                }
+            }
+
+            for (int i = 0; i < keys.Count; i++)
+            {
+                keys[i].PullToHero();
+                if (keys[i].Garbed)
+                {
+                    keys.RemoveAt(i);
+                    i--;
+                    Hero1.ChengeKeysValue(1);
                 }
             }
         }
@@ -222,6 +240,96 @@ namespace BulletHell
                 spriteBatch.Draw(SecTexture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 2, SpriteEffects.None, 0.5f);
             else
                 spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 2, SpriteEffects.None, 0.5f);
+        }
+    }
+
+    public class Coin : GameObject
+    {
+        public static Texture2D Texture2D { get; set; }
+        private static Point TextureSize;
+
+        public static void CountTextureSize(Point size)
+        {
+            TextureSize = size;
+        }
+
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)this.GetPos().X,
+            (int)this.GetPos().Y, TextureSize.X, TextureSize.Y);
+        }
+
+        public void PullToHero()
+        {
+            UpdatePos(this.GetPos() + this.CalcDir() * 3);
+        }
+
+        private Vector2 CalcDir()
+        {
+            var angle = Math.Atan2(Hero1.GetPos().Y - this.GetPos().Y, Hero1.GetPos().X - this.GetPos().X);
+            var length = Math.Sqrt((Hero1.GetPos().X - this.GetPos().X) * (Hero1.GetPos().X - this.GetPos().X) +
+                (Hero1.GetPos().Y - this.GetPos().Y) * (Hero1.GetPos().Y - this.GetPos().Y));
+            var dir = new Vector2((float)(Math.Cos(angle) * 200 / length), (float)(Math.Sin(angle) * 200 / length));
+            return dir;
+        }
+
+        public void Draw()
+        {
+            spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.5f);
+        }
+
+        public bool Garbed
+        {
+            get
+            {
+                return (GetCollusion().Intersects(Hero1.CountCollusion()));
+            }
+        }
+    }
+
+    public class Key : GameObject
+    {
+        public static Texture2D Texture2D { get; set; }
+        private static Point TextureSize;
+
+        public static void CountTextureSize(Point size)
+        {
+            TextureSize = size;
+        }
+
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)this.GetPos().X,
+            (int)this.GetPos().Y, TextureSize.X, TextureSize.Y);
+        }
+
+        public void PullToHero()
+        {
+            UpdatePos(this.GetPos() + this.CalcDir() * 3);
+        }
+
+        private Vector2 CalcDir()
+        {
+            var angle = Math.Atan2(Hero1.GetPos().Y - this.GetPos().Y, Hero1.GetPos().X - this.GetPos().X);
+            var length = Math.Sqrt((Hero1.GetPos().X - this.GetPos().X) * (Hero1.GetPos().X - this.GetPos().X) +
+                (Hero1.GetPos().Y - this.GetPos().Y) * (Hero1.GetPos().Y - this.GetPos().Y));
+            var dir = new Vector2((float)(Math.Cos(angle) * 50 / length), (float)(Math.Sin(angle) * 50 / length));
+            return dir;
+        }
+
+
+
+        public void Draw()
+        {
+            spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 2, SpriteEffects.None, 0.5f);
+        }
+
+        public bool Garbed
+        {
+            get
+            {
+                return (GetCollusion().Intersects(Hero1.CountCollusion()));
+            }
         }
     }
 }
