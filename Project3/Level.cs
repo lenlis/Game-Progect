@@ -72,8 +72,8 @@ namespace BulletHell
             };
             rooms[posibleEndRooms[ID]].portals.Add(new Portal());
             rooms[posibleEndRooms[ID]].portals[^1].UpdatePos(
-                new Vector2(Level.windowWidth / 2 - Portal.Texture2D.Width/2, 
-                Level.windowHeight / 2 - Portal.Texture2D.Height/2));
+                new Vector2(Level.windowWidth / 2 - Portal.Texture2D.Width * 0.3f / 2, 
+                Level.windowHeight / 2 - Portal.Texture2D.Height * 0.3f / 2));
         }
 
         private static void BuildLevel()

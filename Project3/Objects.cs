@@ -390,7 +390,7 @@ namespace BulletHell
         }
         public void Draw()
         {
-            spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0.9f);
+            spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0.9f);
         }
     }
 
