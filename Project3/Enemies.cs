@@ -126,7 +126,13 @@ namespace BulletHell
 
         public void Draw()
         {
-            spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 2, SpriteEffects.None, 0.5f);
+            if (Hero1.GetPos().X < GetPos().X + 30)
+            {
+                spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 2, SpriteEffects.None, 0.5f);
+            }
+            else
+                spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 2, SpriteEffects.FlipHorizontally, 0.5f);
+
         }
     }
 }
