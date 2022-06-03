@@ -7,7 +7,7 @@ namespace BulletHell
     class SimpleEnem : GameObject
     {
         public static Texture2D Texture2D { get; set; }
-        private static Point TextureSize;
+        public static Point TextureSize;
         private int cicle = 1;
         private float HP = 6;
         private int fireTimer = Room.Rand.Next(1, 20);
@@ -17,13 +17,38 @@ namespace BulletHell
         {
             get
             {
-                return (this.GetPos().X < Level.roomPos.X ||
-                    this.GetPos().Y < Level.roomPos.Y - Hero1.Texture2D.Height ||
-                    this.GetPos().X > Objects.windowWidth - Texture2D.Width - Level.roomPos.X ||
-                    this.GetPos().Y > Objects.windowHeight - Texture2D.Height - Level.roomPos.Y);
+                return (LeftWall || RightWall || UpWall || DownWall);
+            }
+        }
+        public bool LeftWall
+        {
+            get
+            {
+                return (this.GetPos().X < Level.roomPos.X);
             }
         }
 
+        public bool UpWall
+        {
+            get
+            {
+                return (this.GetPos().Y < Level.roomPos.Y - TextureSize.Y);
+            }
+        }
+        public bool RightWall
+        {
+            get
+            {
+                return (this.GetPos().X > Objects.windowWidth - TextureSize.X - Level.roomPos.X);
+            }
+        }
+        public bool DownWall
+        {
+            get
+            {
+                return (this.GetPos().Y > Objects.windowHeight - TextureSize.Y - Level.roomPos.Y);
+            }
+        }                   
 
         public void ChengeHP(float shift)
         {
@@ -60,6 +85,14 @@ namespace BulletHell
             else
                 fireTimer += Room.Rand.Next(1, 2);
             UpdatePos(this.GetPos() + this.CalcDir()/3);
+            if (UpWall)
+                UpdatePos(this.GetPos() + new Vector2(0, 2));
+            if (DownWall)
+                UpdatePos(this.GetPos() - new Vector2(0, 2));
+            if (LeftWall)
+                UpdatePos(this.GetPos() + new Vector2(2, 0));
+            if (RightWall)
+                UpdatePos(this.GetPos() - new Vector2(2, 0));
         }
 
         private Vector2 CalcDir()
@@ -74,7 +107,7 @@ namespace BulletHell
             var length = Math.Sqrt((Hero1.GetPos().X - this.GetPos().X) * (Hero1.GetPos().X - this.GetPos().X) + 
                 (Hero1.GetPos().Y - this.GetPos().Y) * (Hero1.GetPos().Y - this.GetPos().Y));
             var result = Vector2.Zero;
-            if (length > 400 || NearWall)
+            if (length > 400 || LeftWall )
             {
                 cicle = 1;
 

@@ -29,5 +29,7 @@ namespace BulletHell
         public float GetForceTic();
 
         public int GetID();
+
+        public void ThrowWeapon();
     }
 }

@@ -51,19 +51,61 @@ namespace BulletHell
             MainMenu.startB = Content.Load<Texture2D>("start");
             MainMenu.exitB = Content.Load<Texture2D>("exit");
             MainMenu.menuBack = Content.Load<Texture2D>("MenuBack");
-            Hero1.Texture2D = Content.Load<Texture2D>("hero1");
-            Hero1.CountTextureSize(new Point(Hero1.Texture2D.Width, Hero1.Texture2D.Height));
+            Hero1.Texture2D = Content.Load<Texture2D>("Hero");
+            Hero1.CountTextureSize(new Point(Hero1.Texture2D.Width*2, Hero1.Texture2D.Height*2));
             empty = Content.Load<Texture2D>("empty");
             map = Content.Load<Texture2D>("map");
             band = Content.Load<Texture2D>("band");
-            Objects.Init(spriteBatch, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
+            Portal.Texture2D = Content.Load<Texture2D>("portal");
+            Showcase.Texture2D = Content.Load<Texture2D>("shCase");
+            HealPotion.ItemTexture = Content.Load<Texture2D>("HPotion");
+            BigHealPotion.ItemTexture = Content.Load<Texture2D>("BigHPotion");
+            StrangePotion.ItemTexture = Content.Load<Texture2D>("StrPotion");
+            RandomPotion.ItemTexture = Content.Load<Texture2D>("RandPotion");
+            Ammo.ItemTexture = Content.Load<Texture2D>("AMMO");
+            Heart.ItemTexture = Content.Load<Texture2D>("Heart");
+            PistolItem.ItemTexture = Content.Load<Texture2D>("Pistol");
+            SimpleShotGunItem.ItemTexture = Content.Load<Texture2D>("SimShGun");
+            CrosBowItem.ItemTexture = Content.Load<Texture2D>("CrossBow");
+            SubMachineGunItem.ItemTexture = Content.Load<Texture2D>("SubMaGun");
+            MachineGunPistolItem.ItemTexture = Content.Load<Texture2D>("SimMaGun");
+            DeagleItem.ItemTexture = Content.Load<Texture2D>("Deagle");
+            PPShItem.ItemTexture = Content.Load<Texture2D>("PPSh");
+            P2070Item.ItemTexture = Content.Load<Texture2D>("P2070");
+            SniperRifleItem.ItemTexture = Content.Load<Texture2D>("SniperRif");
+            RifleItem.ItemTexture = Content.Load<Texture2D>("Rif");
+            BenelleShotGunItem.ItemTexture = Content.Load<Texture2D>("BenShGun");
+            RemingtonShotGunItem.ItemTexture = Content.Load<Texture2D>("RemShGun");
+            Pistol.GunTexture = Content.Load<Texture2D>("Pistol");
+            SimpleShotGun.GunTexture = Content.Load<Texture2D>("SimShGun");
+            CrosBow.GunTexture = Content.Load<Texture2D>("CrossBow");
+            SubMachineGun.GunTexture = Content.Load<Texture2D>("SubMaGun");
+            MachineGunPistol.GunTexture = Content.Load<Texture2D>("SimMaGun");
+            PPSh.GunTexture = Content.Load<Texture2D>("PPSh");
+            P2070.GunTexture = Content.Load<Texture2D>("P2070");
+            SniperRifle.GunTexture = Content.Load<Texture2D>("SniperRif");
+            Rifle.GunTexture = Content.Load<Texture2D>("Rif");
+            BenelleShotGun.GunTexture = Content.Load<Texture2D>("BenShGun");
+            RemingtonShotGun.GunTexture = Content.Load<Texture2D>("RemShGun");
+            Pistol.PrjTexture = Content.Load<Texture2D>("bullet");
+            SimpleShotGun.PrjTexture = Content.Load<Texture2D>("bullet");
+            CrosBow.PrjTexture = Content.Load<Texture2D>("arrow");
+            SubMachineGun.PrjTexture = Content.Load<Texture2D>("bullet");
+            MachineGunPistol.PrjTexture = Content.Load<Texture2D>("bullet");
+            PPSh.PrjTexture = Content.Load<Texture2D>("bullet");
+            P2070.PrjTexture = Content.Load<Texture2D>("bullet");
+            SniperRifle.PrjTexture = Content.Load<Texture2D>("bullet");
+            Rifle.PrjTexture = Content.Load<Texture2D>("bullet");
+            BenelleShotGun.PrjTexture = Content.Load<Texture2D>("bullet");;
+            Objects.Init(GraphicsDevice ,spriteBatch, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
             RemingtonShotGun.PrjTexture = Content.Load<Texture2D>("bullet");
             Deagle.PrjTexture = Content.Load<Texture2D>("bullet");
+            Deagle.GunTexture = Content.Load<Texture2D>("Deagle");
             Objects.ProjTexture2D = Content.Load<Texture2D>("projactale");
             Coin.Texture2D = Content.Load<Texture2D>("coin");
             Key.Texture2D = Content.Load<Texture2D>("key");
             Coin.CountTextureSize(new Point(Coin.Texture2D.Width, Coin.Texture2D.Height));
-            SimpleEnem.Texture2D = Content.Load<Texture2D>("projactale");
+            SimpleEnem.Texture2D = Content.Load<Texture2D>("Enemy");
             SimpleEnem.CountTextureSizeAndCicles(new Point(SimpleEnem.Texture2D.Width*2, SimpleEnem.Texture2D.Height*2));
             Chest.Texture2D = Content.Load<Texture2D>("chestClosed");
             Chest.SecTexture2D = Content.Load<Texture2D>("chestOpened");
@@ -75,7 +117,6 @@ namespace BulletHell
             Level.Floor = Content.Load<Texture2D>("floor");
             Level.Wall = Content.Load<Texture2D>("wall");
             Hero1.inventory.Add(new Deagle());
-            Hero1.inventory.Add(new RemingtonShotGun());
             Level.InitLevel(GraphicsDevice, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
             var vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor),
             4, BufferUsage.None);
@@ -101,6 +142,7 @@ namespace BulletHell
                     if (Hero1.GetHP() <= 0)
                     {
                         State = GameState.GameOver;
+                        Level.LevelCount = 0;
                         Level.ReInitLevel(GraphicsDevice, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);                     
                     }
                     keyboardState = Keyboard.GetState();
@@ -111,6 +153,7 @@ namespace BulletHell
                     if (keyboardState.IsKeyDown(Keys.S)) MoveSet.MoveDown();
                     if (keyboardState.IsKeyDown(Keys.D)) MoveSet.MoveRight();
                     if (keyboardState.IsKeyDown(Keys.A)) MoveSet.MoveLeft();
+                    if (keyboardState.IsKeyDown(Keys.E)) Level.InteractWithItemsAndObjects();
                     var scrolShift = scrolWalue - mouseState.ScrollWheelValue;
                     if (scrolShift < 0 || scrolShift > 0)
                         MoveSet.ChangeWeapon(scrolShift);
@@ -175,22 +218,32 @@ namespace BulletHell
                 }
             }
         }
-
+        public static bool CheckDoorOpening(int doorID)
+        {
+            var keyboardState = Keyboard.GetState();
+            return doorID switch
+            {
+                0 => keyboardState.IsKeyDown(Keys.D),
+                1 => keyboardState.IsKeyDown(Keys.A),
+                2 => keyboardState.IsKeyDown(Keys.W),
+                3 => keyboardState.IsKeyDown(Keys.S),
+                _ => false,
+            };
+        }
 
         protected override void Draw(GameTime gameTime)
         {
             if (State == GameState.GameLevel)
             {
-                GraphicsDevice.Clear(Color.Black);
+                GraphicsDevice.Clear(new Color(50,50,50,255));
                 spriteBatch.Begin(SpriteSortMode.BackToFront);
                 spriteBatch.DrawString(font, Hero1.GetHP().ToString(), new Vector2(55, 15), Color.White);
                 spriteBatch.Draw(band, new Vector2(5, 5), null, Color.White, 0, Vector2.Zero, 0.6f, SpriteEffects.None, 0);
                 spriteBatch.Draw(Coin.Texture2D, new Vector2(105, 5), null, Color.White, 0, Vector2.Zero, 1.9f, SpriteEffects.None, 0);
                 spriteBatch.DrawString(font, Hero1.GetCoinsValue().ToString(), new Vector2(160, 15), Color.White);
-                if (mouseState.X < Hero1.GetPos().X + 30)
-                    spriteBatch.Draw(Hero1.Texture2D, Hero1.GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.FlipHorizontally, 0);
-                else
-                    spriteBatch.Draw(Hero1.Texture2D, Hero1.GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0); 
+                spriteBatch.Draw(Key.Texture2D, new Vector2(220, 18), null, Color.White, 0, Vector2.Zero, 2f, SpriteEffects.None, 0);
+                spriteBatch.DrawString(font, Hero1.GetKeysValue().ToString(), new Vector2(260, 15), Color.White);
+                Hero1.Draw(Mouse.GetState(), spriteBatch);
                 Level.Draw(GraphicsDevice, effectPassCollection);
                 spriteBatch.End();
                 base.Draw(gameTime);

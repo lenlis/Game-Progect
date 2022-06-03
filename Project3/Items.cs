@@ -7,6 +7,40 @@ using System.Collections.Generic;
 
 namespace BulletHell
 {
+    class Loot
+    {
+        public static readonly IItem[] loot = new IItem[18] 
+        { 
+            new HealPotion(),
+            new BigHealPotion(),
+            new StrangePotion(),
+            new RandomPotion(), 
+            new Ammo(), 
+            new Heart(), 
+            new PistolItem(),
+            new SimpleShotGunItem(), 
+            new CrosBowItem(),
+            new SubMachineGunItem(),
+            new MachineGunPistolItem(),
+            new DeagleItem(), 
+            new PPShItem(),
+            new P2070Item(),
+            new SniperRifleItem(),
+            new RifleItem(),
+            new BenelleShotGunItem(),
+            new RemingtonShotGunItem() 
+        };
+        public static void AddLoot(int lootNum, Vector2 Position, List<IItem> items)
+        {
+            items.Add(loot[lootNum]);
+            items[^1].Position = Position;
+        }
+        public static IItem AddLootInCase(int lootNum)
+        {
+            return loot[lootNum];
+        }
+    }
+
 
     class HealPotion : IItem
     {
@@ -15,6 +49,22 @@ namespace BulletHell
         public void UseItem()
         {
             Hero1.ChengeHP(Room.Rand.Next(5, 10));
+        }
+
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -25,6 +75,19 @@ namespace BulletHell
         public void UseItem()
         {
             Hero1.ChengeHP(Room.Rand.Next(10, 20));
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -39,6 +102,19 @@ namespace BulletHell
                 Hero1.ChengeHP(Room.Rand.Next(-10, -1));
             else
                 Hero1.ChengeHP(100);
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -56,6 +132,19 @@ namespace BulletHell
             else
                 Hero1.ChengeMaxHP(1);
         }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
+        }
     }
 
     class Ammo : IItem
@@ -65,6 +154,19 @@ namespace BulletHell
         public void UseItem()
         {
             Hero1.inventory[Hero1.weaponInHand].AddAmmo(Hero1.inventory[Hero1.weaponInHand].GetPlusAmmo());
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -76,6 +178,19 @@ namespace BulletHell
         {
             Hero1.ChengeMaxHP(1);
         }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
+        }
     }
 
     class PistolItem : IItem
@@ -84,8 +199,25 @@ namespace BulletHell
         public Vector2 Position { get; set; }
         public void UseItem()
         {
-            Hero1.inventory.Add(new Pistol());
-            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            if (Hero1.inventory.Count == 2)
+            {
+                Hero1.inventory[Hero1.weaponInHand].ThrowWeapon();
+                Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            }
+            Hero1.inventory.Add(new Pistol());    
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -95,8 +227,25 @@ namespace BulletHell
         public Vector2 Position { get; set; }
         public void UseItem()
         {
+            if (Hero1.inventory.Count == 2)
+            {
+                Hero1.inventory[Hero1.weaponInHand].ThrowWeapon();
+                Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            }
             Hero1.inventory.Add(new SimpleShotGun());
-            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -106,19 +255,53 @@ namespace BulletHell
         public Vector2 Position { get; set; }
         public void UseItem()
         {
+            if (Hero1.inventory.Count == 2)
+            {
+                Hero1.inventory[Hero1.weaponInHand].ThrowWeapon();
+                Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            }
             Hero1.inventory.Add(new CrosBow());
-            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
-    class SubmachineGunItem : IItem
+    class SubMachineGunItem : IItem
     {
         public static Texture2D ItemTexture { get; set; }
         public Vector2 Position { get; set; }
         public void UseItem()
         {
-            Hero1.inventory.Add(new SubmachineGun());
-            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            if (Hero1.inventory.Count == 2)
+            {
+                Hero1.inventory[Hero1.weaponInHand].ThrowWeapon();
+                Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            }
+            Hero1.inventory.Add(new SubMachineGun());
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -128,8 +311,25 @@ namespace BulletHell
         public Vector2 Position { get; set; }
         public void UseItem()
         {
+            if (Hero1.inventory.Count == 2)
+            {
+                Hero1.inventory[Hero1.weaponInHand].ThrowWeapon();
+                Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            }
             Hero1.inventory.Add(new MachineGunPistol());
-            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -139,19 +339,53 @@ namespace BulletHell
         public Vector2 Position { get; set; }
         public void UseItem()
         {
+            if (Hero1.inventory.Count == 2)
+            {
+                Hero1.inventory[Hero1.weaponInHand].ThrowWeapon();
+                Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            }
             Hero1.inventory.Add(new Deagle());
-            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
-    class PPSItem : IItem
+    class PPShItem : IItem
     {
         public static Texture2D ItemTexture { get; set; }
         public Vector2 Position { get; set; }
         public void UseItem()
         {
-            Hero1.inventory.Add(new PPS());
-            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            if (Hero1.inventory.Count == 2)
+            {
+                Hero1.inventory[Hero1.weaponInHand].ThrowWeapon();
+                Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            }
+            Hero1.inventory.Add(new PPSh());
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -161,8 +395,25 @@ namespace BulletHell
         public Vector2 Position { get; set; }
         public void UseItem()
         {
+            if (Hero1.inventory.Count == 2)
+            {
+                Hero1.inventory[Hero1.weaponInHand].ThrowWeapon();
+                Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            }
             Hero1.inventory.Add(new P2070());
-            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -172,8 +423,25 @@ namespace BulletHell
         public Vector2 Position { get; set; }
         public void UseItem()
         {
+            if (Hero1.inventory.Count == 2)
+            {
+                Hero1.inventory[Hero1.weaponInHand].ThrowWeapon();
+                Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            }
             Hero1.inventory.Add(new SniperRifle());
-            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -183,8 +451,25 @@ namespace BulletHell
         public Vector2 Position { get; set; }
         public void UseItem()
         {
+            if (Hero1.inventory.Count == 2)
+            {
+                Hero1.inventory[Hero1.weaponInHand].ThrowWeapon();
+                Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            }
             Hero1.inventory.Add(new Rifle());
-            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -194,8 +479,25 @@ namespace BulletHell
         public Vector2 Position { get; set; }
         public void UseItem()
         {
+            if (Hero1.inventory.Count == 2)
+            {
+                Hero1.inventory[Hero1.weaponInHand].ThrowWeapon();
+                Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            }
             Hero1.inventory.Add(new BenelleShotGun());
-            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -205,8 +507,25 @@ namespace BulletHell
         public Vector2 Position { get; set; }
         public void UseItem()
         {
+            if (Hero1.inventory.Count == 2)
+            {
+                Hero1.inventory[Hero1.weaponInHand].ThrowWeapon();
+                Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+            }
             Hero1.inventory.Add(new BenelleShotGun());
-            Hero1.inventory.RemoveAt(Hero1.weaponInHand);
+        }
+        public Vector2 GetPos()
+        {
+            return Position;
+        }
+        public Texture2D GetTexture()
+        {
+            return ItemTexture;
+        }
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)Position.X,
+            (int)Position.Y, ItemTexture.Width, ItemTexture.Height);
         }
     }
 
@@ -267,6 +586,11 @@ namespace BulletHell
         {
             AvailableAmmo += ammo;
         }
+
+        public void ThrowWeapon()
+        {
+            Level.rooms[Level.GetHeroInRoomValue()].items.Add(new PistolItem() {Position = Hero1.GetPos()});
+        }
     }
 
     class SimpleShotGun : IWeapon
@@ -324,15 +648,13 @@ namespace BulletHell
 
         private float GetSpread(int turn)
         {
-            
-            switch (turn)
+
+            return turn switch
             {
-                case 2:
-                    return 0.25f;
-                case 3:
-                    return -0.25f;
-            }
-            return 0;
+                2 => 0.25f,
+                3 => -0.25f,
+                _ => 0,
+            };
         }
 
         public int GetID()
@@ -343,6 +665,11 @@ namespace BulletHell
         public void AddAmmo(int ammo)
         {
             AvailableAmmo += ammo;
+        }
+
+        public void ThrowWeapon()
+        {
+            Level.rooms[Level.GetHeroInRoomValue()].items.Add(new SimpleShotGunItem() { Position = Hero1.GetPos() });
         }
     }  
 
@@ -401,9 +728,14 @@ namespace BulletHell
         {
             AvailableAmmo += ammo;
         }
+
+        public void ThrowWeapon()
+        {
+            Level.rooms[Level.GetHeroInRoomValue()].items.Add(new CrosBowItem() { Position = Hero1.GetPos() });
+        }
     }
 
-    class SubmachineGun : IWeapon
+    class SubMachineGun : IWeapon
     {
         public static Texture2D GunTexture { get; set; }
         public static Texture2D PrjTexture { get; set; }
@@ -458,6 +790,11 @@ namespace BulletHell
         public void AddAmmo(int ammo)
         {
             AvailableAmmo += ammo;
+        }
+
+        public void ThrowWeapon()
+        {
+            Level.rooms[Level.GetHeroInRoomValue()].items.Add(new SubMachineGunItem() { Position = Hero1.GetPos() });
         }
     }
 
@@ -516,6 +853,11 @@ namespace BulletHell
         public void AddAmmo(int ammo)
         {
             AvailableAmmo += ammo;
+        }
+
+        public void ThrowWeapon()
+        {
+            Level.rooms[Level.GetHeroInRoomValue()].items.Add(new MachineGunPistolItem() { Position = Hero1.GetPos() });
         }
     }
 
@@ -576,9 +918,14 @@ namespace BulletHell
         {
             AvailableAmmo += ammo;
         }
+
+        public void ThrowWeapon()
+        {
+            Level.rooms[Level.GetHeroInRoomValue()].items.Add(new DeagleItem() { Position = Hero1.GetPos() });
+        }
     }
 
-    class PPS : IWeapon
+    class PPSh : IWeapon
     {
         public static Texture2D GunTexture { get; set; }
         public static Texture2D PrjTexture { get; set; }
@@ -634,6 +981,11 @@ namespace BulletHell
         public void AddAmmo(int ammo)
         {
             AvailableAmmo += ammo;
+        }
+
+        public void ThrowWeapon()
+        {
+            Level.rooms[Level.GetHeroInRoomValue()].items.Add(new PPShItem() { Position = Hero1.GetPos() });
         }
     }
 
@@ -694,6 +1046,11 @@ namespace BulletHell
         {
             AvailableAmmo += ammo;
         }
+
+        public void ThrowWeapon()
+        {
+            Level.rooms[Level.GetHeroInRoomValue()].items.Add(new P2070Item() { Position = Hero1.GetPos() });
+        }
     }
 
     class SniperRifle : IWeapon
@@ -751,6 +1108,11 @@ namespace BulletHell
         {
             AvailableAmmo += ammo;
         }
+
+        public void ThrowWeapon()
+        {
+            Level.rooms[Level.GetHeroInRoomValue()].items.Add(new SniperRifleItem() { Position = Hero1.GetPos() });
+        }
     }
 
     class Rifle : IWeapon
@@ -807,6 +1169,11 @@ namespace BulletHell
         public void AddAmmo(int ammo)
         {
             AvailableAmmo += ammo;
+        }
+
+        public void ThrowWeapon()
+        {
+            Level.rooms[Level.GetHeroInRoomValue()].items.Add(new RifleItem() { Position = Hero1.GetPos() });
         }
     }
 
@@ -866,14 +1233,12 @@ namespace BulletHell
         private float GetSpread(int turn)
         {
 
-            switch (turn)
+            return turn switch
             {
-                case 2:
-                    return 0.25f;
-                case 3:
-                    return -0.25f;
-            }
-            return 0;
+                2 => 0.25f,
+                3 => -0.25f,
+                _ => 0,
+            };
         }
 
         public int GetID()
@@ -884,6 +1249,11 @@ namespace BulletHell
         public void AddAmmo(int ammo)
         {
             AvailableAmmo += ammo;
+        }
+
+        public void ThrowWeapon()
+        {
+            Level.rooms[Level.GetHeroInRoomValue()].items.Add(new BenelleShotGunItem() { Position = Hero1.GetPos() });
         }
     }
 
@@ -943,14 +1313,12 @@ namespace BulletHell
         private float GetSpread(int turn)
         {
 
-            switch (turn)
+            return turn switch
             {
-                case 2:
-                    return 0.15f;
-                case 3:
-                    return -0.15f;
-            }
-            return 0;
+                2 => 0.15f,
+                3 => -0.15f,
+                _ => 0,
+            };
         }
 
         public int GetID()
@@ -961,6 +1329,11 @@ namespace BulletHell
         public void AddAmmo(int ammo)
         {
             AvailableAmmo += ammo;
+        }
+
+        public void ThrowWeapon()
+        {
+            Level.rooms[Level.GetHeroInRoomValue()].items.Add(new RemingtonShotGunItem() { Position = Hero1.GetPos() });
         }
     }
 }

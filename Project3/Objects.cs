@@ -13,17 +13,18 @@ namespace BulletHell
         static public int windowHeight;   
         static public SpriteBatch spriteBatch;
         public static Vector2 Position = new Vector2();
-        
+        public static GraphicsDevice graphicsDevice;
         public static bool HeroDirIsRirht;
         public static Texture2D ProjTexture2D { get; set; }
 
         
         
-        public static void Init(SpriteBatch spriteBatch, int Width, int Height)
+        public static void Init(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, int Width, int Height)
         {
             windowWidth = Width;
             windowHeight = Height;
             Objects.spriteBatch = spriteBatch;
+            Objects.graphicsDevice = graphicsDevice;
         }
 
         public static void AddCoins(Vector2 Pos, List<Coin> coins)
@@ -41,9 +42,13 @@ namespace BulletHell
         public static void CreateProj(Vector2 pos, Point target, Texture2D texture, float speed,
             List<Projectile> projectiles, bool isEnPrj, float damage, float deflection)
         {
-            var start = new Vector2(pos.X + Hero1.Texture2D.Width/2, pos.Y + Hero1.Texture2D.Height/2);
+            Vector2 start;
             if (target.X > pos.X + 30)
             {
+                if (!isEnPrj)
+                    start = Hero1.CalcGunPos(true);
+                else
+                    start = new Vector2(pos.X + SimpleEnem.Texture2D.Width / 2, pos.Y + SimpleEnem.Texture2D.Height / 2);
                 projectiles.Add(new Projectile()
                 {
                     damage = damage,
@@ -60,6 +65,10 @@ namespace BulletHell
             }
             else
             {
+                if (!isEnPrj)
+                    start = Hero1.CalcGunPos(true);
+                else
+                    start = new Vector2(pos.X + SimpleEnem.Texture2D.Width / 2, pos.Y + SimpleEnem.Texture2D.Height / 2);
                 projectiles.Add(new Projectile() {
                     damage = damage,
                     Texture = texture,
@@ -191,22 +200,10 @@ namespace BulletHell
 
         public void Draw()
         {
-            if (!enemyPrj)
-            {
                 if (position == startPos)
                     Objects.spriteBatch.Draw(Game1.empty, position, null, color, rotationAngle, Vector2.Zero, 1, SpriteEffects.None, 0);
-                else if (Objects.HeroDirIsRirht)
-                {
-                    Objects.spriteBatch.Draw(Texture, position, null, color, rotationAngle, Vector2.Zero, 1, SpriteEffects.None, 0);
-                }
                 else
-                {
-                    Objects.spriteBatch.Draw(Texture, position, null, color, (float)(rotationAngle - Math.PI), Vector2.Zero, 1, SpriteEffects.FlipHorizontally, 0);
-                }
-            }
-            else
-                Objects.spriteBatch.Draw(Texture, position, null, color, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
-
+                    Objects.spriteBatch.Draw(Texture, position, null, color, rotationAngle, Vector2.Zero, 1, SpriteEffects.None, 0);   
         }
     }
 
@@ -218,9 +215,17 @@ namespace BulletHell
         private static Point TextureSize;
         public void Open(Random rand)
         {
+            var lotChance = rand.Next(0, 100);
             ChengeCondition(true);
-            for(int i = 0; i < rand.Next(1, 20); i++)
-                Objects.AddCoins(GetPos(), Level.rooms[Level.GetHeroInRoomValue()].coins);
+            if (lotChance <= 20)
+                for (int i = 0; i < rand.Next(1, 20); i++)
+                    Objects.AddCoins(GetPos(), Level.rooms[Level.GetHeroInRoomValue()].coins);
+            else if (lotChance <= 50)
+                Loot.AddLoot(4, GetPos(), Level.rooms[Level.GetHeroInRoomValue()].items);
+            else
+                Loot.AddLoot(rand.Next(0, 17), GetPos(), Level.rooms[Level.GetHeroInRoomValue()].items);
+
+
         }
 
         public Rectangle GetCollusion()
@@ -332,4 +337,61 @@ namespace BulletHell
             }
         }
     }
+
+    public class Showcase : GameObject
+    {
+        public static Texture2D Texture2D { get; set; }
+        public IItem ItemInCase;
+        public int Price;  
+
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)this.GetPos().X,
+            (int)this.GetPos().Y, Texture2D.Width, Texture2D.Height);
+        }
+
+        public void Buy()
+        {
+            ChengeCondition(true);
+            ItemInCase.UseItem();
+        }
+
+        public void Draw()
+        {
+            if (!GetCondition())
+            {
+                spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.9f);
+                spriteBatch.Draw(ItemInCase.GetTexture(),
+                    new Vector2(GetPos().X + ItemInCase.GetTexture().Width / 2 + Texture2D.Width / 2, GetPos().Y - ItemInCase.GetTexture().Height),
+                    null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.9f);
+                spriteBatch.DrawString(Game1.font, Price.ToString(), new Vector2(GetPos().X + 10, GetPos().Y + 10), Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.8f);
+            }
+            else
+                spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.9f);
+
+        }
+    }
+
+    class Portal : GameObject
+    {
+        public static Texture2D Texture2D { get; set; }
+        public IItem ItemInCase;
+        public int Price;
+
+        public Rectangle GetCollusion()
+        {
+            return new Rectangle((int)this.GetPos().X,
+            (int)this.GetPos().Y, Texture2D.Width, Texture2D.Height);
+        }
+
+        public void GoToNextLevel()
+        {
+            Level.ReInitLevel(Objects.graphicsDevice, Objects.windowWidth, Objects.windowHeight);
+        }
+        public void Draw()
+        {
+            spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0.9f);
+        }
+    }
+
 }

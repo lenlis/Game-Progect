@@ -20,7 +20,7 @@ namespace BulletHell
         public static int weaponInHand = 0;
         static public readonly List<IWeapon> inventory = new List<IWeapon>();
         public static Texture2D Texture2D { get; set; }
-        private static Point TextureSize;
+        public static Point TextureSize;
 
         public static void Reload()
         {
@@ -95,6 +95,38 @@ namespace BulletHell
         public static void ChengeKeysValue(int shift)
         {
             keys += shift;
+        }
+
+        public static void Draw( MouseState mouseState, SpriteBatch spriteBatch)
+        {
+            if (mouseState.X < Hero1.GetPos().X + 30)
+            {
+
+                spriteBatch.Draw(Hero1.Texture2D, Hero1.GetPos(), null, Color.White, 0, Vector2.Zero, 2, SpriteEffects.FlipHorizontally, 0.1f);
+                spriteBatch.Draw(inventory[weaponInHand].GetGunTexture(), CalcGunPos(true), null, Color.White, (float)CalcAng(mouseState, CalcGunPos(true)), Vector2.Zero, 1, SpriteEffects.FlipVertically, 0);
+            }
+            else
+            {
+
+                spriteBatch.Draw(Hero1.Texture2D, Hero1.GetPos(), null, Color.White, 0, Vector2.Zero, 2, SpriteEffects.None, 0.1f);
+                spriteBatch.Draw(inventory[weaponInHand].GetGunTexture(), CalcGunPos(false), null, Color.White, (float)CalcAng(mouseState, CalcGunPos(false)), Vector2.Zero, 1, SpriteEffects.None, 0);
+            }
+        }
+
+        private static double CalcAng(MouseState mouseState, Vector2 Pos)
+        {
+            return Math.Atan2(mouseState.Y - Pos.Y, mouseState.X - Pos.X);
+        }
+
+        public static Vector2 CalcGunPos(bool deflection)
+        {
+            int intDef;
+            if (deflection)
+                intDef = 1;
+            else
+                intDef = -1;
+            return new Vector2(Position.X + (TextureSize.X / 2) + intDef * (inventory[weaponInHand].GetGunTexture().Width / 2),
+                             Position.Y + (TextureSize.Y / 2) + intDef * (inventory[weaponInHand].GetGunTexture().Height / 2));
         }
     }
 }

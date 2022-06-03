@@ -22,8 +22,7 @@ namespace BulletHell
         static public void MoveRight()
         {
             var heroPos = Hero1.GetPos();
-            if (heroPos.X < Objects.windowWidth - 75d - Level.roomPos.X
-                && Level.GetHeroInRoomValue() != Level.MaxRoomInd)
+            if (heroPos.X < Objects.windowWidth - Hero1.TextureSize.X - Level.roomPos.X)
                 heroPos.X += 230 * (30 / 1000f);
             Hero1.UpdatePos(heroPos);
         }
@@ -31,7 +30,7 @@ namespace BulletHell
         static public void MoveUp()
         {
             var heroPos = Hero1.GetPos();
-            if (heroPos.Y > Level.roomPos.Y - Hero1.Texture2D.Height + 20)
+            if (heroPos.Y > Level.roomPos.Y - Hero1.TextureSize.Y + 20)
                 heroPos.Y -= 230 * (30 / 1000f);
             Hero1.UpdatePos(heroPos);
         }
@@ -39,7 +38,7 @@ namespace BulletHell
         static public void MoveDown()
         {
             var heroPos = Hero1.GetPos();
-            if (heroPos.Y < Objects.windowHeight - 65 - Level.roomPos.Y)
+            if (heroPos.Y < Objects.windowHeight - Hero1.TextureSize.Y - Level.roomPos.Y)
                 heroPos.Y += 230 * (30 / 1000f);
             Hero1.UpdatePos(heroPos);
         }

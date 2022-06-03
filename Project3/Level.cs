@@ -9,6 +9,7 @@ namespace BulletHell
     {
         static public int windowWidth;
         static public int windowHeight;
+        static bool transportFlag;
         static public Texture2D Marker { get; set; }
         static public Texture2D Torch { get; set; }
         static public Texture2D Floor { get; set; }
@@ -61,6 +62,18 @@ namespace BulletHell
             var ID = Room.Rand.Next(1, posibleEndRooms.Count) - 1;
             rooms[posibleEndRooms[ID]].CountRoomSize(-1);
             rooms[posibleEndRooms[ID]].doors[0].ChengeDoorPos(rooms[posibleEndRooms[ID]].GetPos());
+            for (int i = 0; i < rooms[posibleEndRooms[ID]].chests.Count; i++)
+            {
+                rooms[posibleEndRooms[ID]].chests.RemoveAt(i);
+            }
+            for (int i = 0; i < rooms[posibleEndRooms[ID]].enemies.Count; i++)
+            {
+                rooms[posibleEndRooms[ID]].enemies.RemoveAt(i);
+            };
+            rooms[posibleEndRooms[ID]].portals.Add(new Portal());
+            rooms[posibleEndRooms[ID]].portals[^1].UpdatePos(
+                new Vector2(Level.windowWidth / 2 - Portal.Texture2D.Width/2, 
+                Level.windowHeight / 2 - Portal.Texture2D.Height/2));
         }
 
         private static void BuildLevel()
@@ -85,7 +98,7 @@ namespace BulletHell
                     var y = Room.GetPosibleWay(room.roomMapCord, (int)dr.GetWall()).Y;
                     dr.WayToRoomNumChange(initLevelMap[x, y]);
                 }
-                if (room.doors.Count == 1)
+                if (room.doors.Count == 1 && initLevelMap[room.roomMapCord.X, room.roomMapCord.Y] !=0)
                 {
                     posibleEndRooms.Add(initLevelMap[room.roomMapCord.X, room.roomMapCord.Y]);
                 }
@@ -113,6 +126,55 @@ namespace BulletHell
             HeroInRoom = id;
         }
 
+        public static void InteractWithItemsAndObjects()
+        {
+
+            for (int i = 0; i < rooms[HeroInRoom].items.Count; i++)
+                {
+                    var item = rooms[HeroInRoom].items[i];
+                    if (item.GetCollusion().Intersects(Hero1.CountCollusion()))
+                    {
+                        item.UseItem();
+                        rooms[HeroInRoom].items.RemoveAt(i);
+                        i--;
+                        return;
+                    }
+                    
+                }
+
+
+            foreach (var sh in rooms[HeroInRoom].showcases)
+                {
+                    if (sh.GetCollusion().Intersects(Hero1.CountCollusion()) && Hero1.GetCoinsValue() >= sh.Price && !sh.GetCondition())
+                    {
+                        sh.Buy();
+                        return;
+                    }
+                }
+
+
+                foreach (var prt in rooms[HeroInRoom].portals)
+                {
+                    if (prt.GetCollusion().Intersects(Hero1.CountCollusion()))
+                    {
+                        prt.GoToNextLevel();
+                        return;
+                    }
+                }
+            
+
+
+                    foreach (var ch in rooms[HeroInRoom].chests)
+                    {
+                        if (ch.GetCollusion().Intersects(Hero1.CountCollusion()) && !ch.GetCondition() && ch.closed && Hero1.GetKeysValue() > 0)
+                        {
+                            Hero1.ChengeKeysValue(-1);
+                            ch.Open(Room.Rand);
+                            return;
+                        }
+                    }
+        }
+
         public static void Update()
         {
             Objects.Update(rooms[HeroInRoom].projectiles, rooms[HeroInRoom].enProjectiles, rooms[HeroInRoom].coins, rooms[HeroInRoom].keys);
@@ -121,16 +183,16 @@ namespace BulletHell
                 if (ch.GetCollusion().Intersects(Hero1.CountCollusion()) && !ch.GetCondition() && !ch.closed)
                     ch.Open(Room.Rand);
             }
-            for (int i = 0; i < rooms[HeroInRoom].enemy.Count; i++)
+            for (int i = 0; i < rooms[HeroInRoom].enemies.Count; i++)
             {
-                var en = rooms[HeroInRoom].enemy[i];
+                var en = rooms[HeroInRoom].enemies[i];
                 if (en.GetHP() <= 0)
                 {
-                    if(Room.Rand.Next(0,100) <= 0)
+                    if(Room.Rand.Next(0,100) <= 90)
                         Objects.AddCoins(en.GetPos(), rooms[HeroInRoom].coins);
                     else
                         Objects.AddKey(en.GetPos(), rooms[HeroInRoom].keys);
-                    rooms[HeroInRoom].enemy.RemoveAt(i);
+                    rooms[HeroInRoom].enemies.RemoveAt(i);
                     i--;
                 }
                 en.Update();
@@ -149,29 +211,36 @@ namespace BulletHell
                     }
                 }
             }
-            if(rooms[HeroInRoom].enemy.Count == 0)
+            if(rooms[HeroInRoom].enemies.Count == 0)
             foreach (var dr in rooms[HeroInRoom].doors)
             {
-                if (dr.GetCollusion().Intersects(Hero1.CountCollusion()) && !dr.GetCondition())
-                {
-                    var id = dr.GetWayToRoomNum();
-                    roomPos = new Vector2(rooms[id].GetPos().X, rooms[id].GetPos().Y);
-                    foreach (var door in rooms[id].doors)
+                    if (dr.GetCollusion().Intersects(Hero1.CountCollusion()) && !dr.GetCondition())
                     {
-                            map[door.GetWayToRoomNum()].mayVisited = true;
-                        if ((((int)dr.GetWall() % 2 == 0) && ((int)dr.GetWall() + 1 == (int)door.GetWall())) ||
-                            (((int)dr.GetWall() % 2 == 1) && ((int)dr.GetWall() - 1 == (int)door.GetWall())))
+                        if(Game1.CheckDoorOpening((int)dr.GetWall()))
+                        if (!transportFlag)
                         {
-                            if (door.GetEnterPos().X != 0)
-                                Hero1.UpdatePos(new Vector2(door.GetEnterPos().X, Hero1.GetPos().Y));
-                            if (door.GetEnterPos().Y != 0)
-                                Hero1.UpdatePos(new Vector2(Hero1.GetPos().X, door.GetEnterPos().Y));
+                            transportFlag = true;
+                            var id = dr.GetWayToRoomNum();
+                            roomPos = new Vector2(rooms[id].GetPos().X, rooms[id].GetPos().Y);
+                            foreach (var door in rooms[id].doors)
+                            {
+                                map[door.GetWayToRoomNum()].mayVisited = true;
+                                if ((((int)dr.GetWall() % 2 == 0) && ((int)dr.GetWall() + 1 == (int)door.GetWall())) ||
+                                    (((int)dr.GetWall() % 2 == 1) && ((int)dr.GetWall() - 1 == (int)door.GetWall())))
+                                {
+                                    if (door.GetEnterPos().X != 0)
+                                        Hero1.UpdatePos(new Vector2(door.GetEnterPos().X, Hero1.GetPos().Y));
+                                    if (door.GetEnterPos().Y != 0)
+                                        Hero1.UpdatePos(new Vector2(Hero1.GetPos().X, door.GetEnterPos().Y));
+                                }
+                            }
+                            ChangeHeroInRoomValue(id);
+                            if (map[id].visited == false)
+                                map[id].visited = true;
                         }
                     }
-                    ChangeHeroInRoomValue(id);
-                        if (map[id].visited == false)
-                            map[id].visited = true;
-                }
+                    else
+                        transportFlag = false;
             }
         }   
         public static void DrawMap(GraphicsDevice graphicsDevice, BasicEffect effect)
@@ -204,7 +273,7 @@ namespace BulletHell
         VertexPositionColor[] vertexPositionColorsVertical;
         VertexPositionColor[] vertexPositionColorsVerticalWall;
         VertexPositionColor[] vertexPositionColorsHorisontalWall;
-        private List<Vector2> EnemyPositions = new List<Vector2>();
+        private readonly List<Vector2> EnemyPositions = new List<Vector2>();
         Vector2 Position;
         Vector2 realMapPosition;
         public readonly List<IItem> items = new List<IItem>();
@@ -213,7 +282,9 @@ namespace BulletHell
         public readonly List<Coin> coins = new List<Coin>();
         public readonly List<Key> keys = new List<Key>();
         public List<Chest> chests = new List<Chest>();
-        public List<SimpleEnem> enemy = new List<SimpleEnem>();
+        public List<SimpleEnem> enemies = new List<SimpleEnem>();
+        public List<Showcase> showcases = new List<Showcase>();
+        public List<Portal> portals = new List<Portal>();
         public List<Door> doors = new List<Door>();
         public static Random Rand = new Random();
         public static Texture2D DoorTexture { get; set; }
@@ -255,13 +326,11 @@ namespace BulletHell
 
             if (doorWallId % 2 == 0)
                 Level.rooms[Level.initLevelMap[mapCord.X, mapCord.Y]].AddDoor(doorWallId + 1);
-            else
-                    if (doorWallId % 2 == 1)
+            else if (doorWallId % 2 == 1)
                 Level.rooms[Level.initLevelMap[mapCord.X, mapCord.Y]].AddDoor(doorWallId - 1);
 
             var flag = false;
-            var doorCount = Rand.Next(2, 6);
-            if (doorCount > 4) doorCount = 4;
+            var doorCount = Math.Min(Rand.Next(2, 6), 4);
             for (int i = 0; i < doorCount; i++)
             {
                 flag = false;
@@ -294,7 +363,7 @@ namespace BulletHell
 
         public void GenerateObjAndEnem(int roomInd)
         {
-            if (Position.X >= 500 && Position.Y >= 200 && roomInd != Level.MaxRoomInd)
+            if (Position.X >= 500 && Position.Y >= 200)
             {
                 chests.Add(new Chest());
                 if (Rand.Next(1, 100) > 90)
@@ -303,16 +372,24 @@ namespace BulletHell
                     chests[0].closed = true;
                 chests[0].UpdatePos(new Vector2(Level.windowWidth / 2 - Chest.Texture2D.Width, Level.windowHeight / 2 - Chest.Texture2D.Height));
             }
-            else if (roomInd != Level.MaxRoomInd && roomInd != 0)
+            else if (Position.X >= 450 && Position.Y >= 200)
             {
-                var enemMaxAmount = Rand.Next(2, 3*Level.LevelCount);
+                for (int i = 1; i<=3; i++) 
+                {
+                    showcases.Add(new Showcase() { ItemInCase = Loot.AddLootInCase(Rand.Next(0, 17)), Price = Rand.Next(20, 50)*Level.LevelCount });
+                    showcases[^1].UpdatePos(new Vector2(Position.X + Position.X * i/2, Level.windowHeight / 2 - Showcase.Texture2D.Height));
+                }
+            }
+            else if (roomInd != 0)
+            {
+                var enemMaxAmount = Rand.Next(2, 4 * Level.LevelCount);
                 for (var i = 1; i <= enemMaxAmount; i++)
                 {
                     if (EnemyPositions.Count == 0)
                         return;
-                    enemy.Add(new SimpleEnem());
+                    enemies.Add(new SimpleEnem());
                     var posNum = Rand.Next(0, EnemyPositions.Count - 1);
-                    enemy[^1].UpdatePos(EnemyPositions[posNum]);
+                    enemies[^1].UpdatePos(EnemyPositions[posNum]);
                     EnemyPositions.RemoveAt(posNum);
                 }
             }
@@ -386,7 +463,7 @@ namespace BulletHell
             {
                 ch.Draw();
             }
-            foreach (var en in enemy)
+            foreach (var en in enemies)
             {
                 en.Draw();
             }
@@ -405,6 +482,18 @@ namespace BulletHell
             foreach (var proj in enProjectiles)
             {
                 proj.Draw();
+            }
+            foreach (var item in items)
+            {
+                Objects.spriteBatch.Draw(item.GetTexture(), item.GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.7f);
+            }
+            foreach (var portal in portals)
+            {
+                portal.Draw();
+            }
+            foreach (var showCase in showcases)
+            {
+                showCase.Draw();
             }
         }
 
@@ -474,26 +563,7 @@ namespace BulletHell
         public void InitDoor(int wall, Vector2 roomPos)
         {
             Wall = (WallId)wall;
-            if (Wall == WallId.left)
-            {
-                this.UpdatePos(new Vector2(roomPos.X - 18, (Level.windowHeight - roomPos.Y - roomPos.Y) / 2 + roomPos.Y - 50));
-                EnterPosition = new Vector2(roomPos.X + 20, 0);
-            }
-            if (Wall == WallId.right)
-            {
-                this.UpdatePos(new Vector2(Level.windowWidth - roomPos.X - 5, (Level.windowHeight - roomPos.Y - roomPos.Y) / 2 + roomPos.Y - 50));
-                EnterPosition = new Vector2(Level.windowWidth - roomPos.X - 20 - Hero1.Texture2D.Width, 0);
-            }
-            if (Wall == WallId.up)
-            {
-                this.UpdatePos(new Vector2((Level.windowWidth) / 2 - TextureSizeUD.X + 15, roomPos.Y - TextureSizeUD.Y));
-                EnterPosition = new Vector2(0, roomPos.Y + 20);
-            }
-            if (Wall == WallId.down)
-            {
-                this.UpdatePos(new Vector2((Level.windowWidth) / 2 - TextureSizeUD.X + 15, Level.windowHeight - roomPos.Y));
-                EnterPosition = new Vector2(0, Level.windowHeight - roomPos.Y - 20 - Hero1.Texture2D.Height);
-            }
+            ChengeDoorPos(roomPos);
         }
 
         public void ChengeDoorPos(Vector2 roomPos)
@@ -501,22 +571,22 @@ namespace BulletHell
             if (Wall == WallId.left)
             {
                 this.UpdatePos(new Vector2(roomPos.X - 18, (Level.windowHeight - roomPos.Y - roomPos.Y) / 2 + roomPos.Y - 50));
-                EnterPosition = new Vector2(roomPos.X + 20, 0);
+                EnterPosition = new Vector2(roomPos.X + 30, 0);
             }
             if (Wall == WallId.right)
             {
                 this.UpdatePos(new Vector2(Level.windowWidth - roomPos.X - 5, (Level.windowHeight - roomPos.Y - roomPos.Y) / 2 + roomPos.Y - 50));
-                EnterPosition = new Vector2(Level.windowWidth - roomPos.X - 20 - Hero1.Texture2D.Width, 0);
+                EnterPosition = new Vector2(Level.windowWidth - roomPos.X - 30 - Hero1.Texture2D.Width, 0);
             }
             if (Wall == WallId.up)
             {
                 this.UpdatePos(new Vector2((Level.windowWidth) / 2 - TextureSizeUD.X + 15, roomPos.Y - TextureSizeUD.Y));
-                EnterPosition = new Vector2(0, roomPos.Y + 20);
+                EnterPosition = new Vector2(0, roomPos.Y + 30);
             }
             if (Wall == WallId.down)
             {
                 this.UpdatePos(new Vector2((Level.windowWidth) / 2 - TextureSizeUD.X + 15, Level.windowHeight - roomPos.Y));
-                EnterPosition = new Vector2(0, Level.windowHeight - roomPos.Y - 20 - Hero1.Texture2D.Height);
+                EnterPosition = new Vector2(0, Level.windowHeight - roomPos.Y - 50 - Hero1.Texture2D.Height);
             }
         }
 
