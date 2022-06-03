@@ -188,8 +188,11 @@ namespace BulletHell
                 var en = rooms[HeroInRoom].enemies[i];
                 if (en.GetHP() <= 0)
                 {
-                    if(Room.Rand.Next(0,100) <= 90)
+                    var random = Room.Rand.Next(0, 100);
+                    if (random <= 70)
                         Objects.AddCoins(en.GetPos(), rooms[HeroInRoom].coins);
+                    else if (random <= 95)
+                        Loot.AddLoot(4, en.GetPos(), rooms[HeroInRoom].items);
                     else
                         Objects.AddKey(en.GetPos(), rooms[HeroInRoom].keys);
                     rooms[HeroInRoom].enemies.RemoveAt(i);

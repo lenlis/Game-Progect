@@ -153,7 +153,8 @@ namespace BulletHell
         public Vector2 Position { get; set; }
         public void UseItem()
         {
-            Hero1.inventory[Hero1.weaponInHand].AddAmmo(Hero1.inventory[Hero1.weaponInHand].GetPlusAmmo());
+            foreach(var weap in Hero1.inventory)
+                weap.AddAmmo(weap.GetPlusAmmo());
         }
         public Vector2 GetPos()
         {
@@ -603,17 +604,20 @@ namespace BulletHell
         public readonly int Damage = 1;
         public readonly int PlusAmmo = 20;
         public readonly int ID = 1;
-        public int AvailableAmmo;
+        public int AvailableAmmo = 20;
         public readonly float Spreading = 0;
 
 
 
         public void Shoot()
         {
-            for(var i = 1; i <= 3; i++)
-                Objects.CreateProj(Hero1.GetPos(),
-                    new Point(Mouse.GetState().X, Mouse.GetState().Y),
-                    PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, GetSpread(i));
+            if (AvailableAmmo > 0)
+            {
+                for (var i = 1; i <= 3; i++)
+                    Objects.CreateProj(Hero1.GetPos(),
+                        new Point(Mouse.GetState().X, Mouse.GetState().Y),
+                        PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, GetSpread(i));
+            }
         }
 
         public Texture2D GetPrjTexture()
@@ -683,14 +687,17 @@ namespace BulletHell
         public readonly int Damage = 5;
         public readonly int PlusAmmo = 10;
         public readonly int ID = 2;
-        public int AvailableAmmo;
+        public int AvailableAmmo = 10;
         public readonly float Spreading = 0;
 
 
         public void Shoot()
         {
-            Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
+            if (AvailableAmmo > 0)
+            {
+                Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
                 PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, 0);
+            }
         }
 
         public Texture2D GetPrjTexture()
@@ -745,15 +752,18 @@ namespace BulletHell
         public readonly float Damage = 0.4f;
         public readonly int PlusAmmo = 50;
         public readonly int ID = 3;
-        public int AvailableAmmo;
+        public int AvailableAmmo = 50;
         public readonly float Spreading = 0.2f;
 
 
         public void Shoot()
         {
-            var spread = Math.Min((float)Room.Rand.NextDouble() / 3, Spreading) * Math.Min(Room.Rand.Next(-1, 2), 1);
-            Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
-                PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, spread);
+            if (AvailableAmmo > 0)
+            {
+                var spread = Math.Min((float)Room.Rand.NextDouble() / 3, Spreading) * Math.Min(Room.Rand.Next(-1, 2), 1);
+                Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
+                    PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, spread);
+            }
         }
 
         public Texture2D GetPrjTexture()
@@ -806,17 +816,20 @@ namespace BulletHell
         public readonly float ProjectaleSpeed = 3;
         public readonly float ForceTic = 1;
         public readonly float Damage = 0.2f;
-        public readonly int PlusAmmo = 50;
+        public readonly int PlusAmmo = 150;
         public readonly int ID = 4;
-        public int AvailableAmmo;
+        public int AvailableAmmo = 150;
         public readonly float Spreading = 0.4f;
 
 
         public void Shoot()
         {
-            var spread = Math.Min((float)Room.Rand.NextDouble()/3, Spreading) * Math.Min(Room.Rand.Next(-1, 2), 1);
-            Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
-                PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, spread);
+            if (AvailableAmmo > 0)
+            {
+                var spread = Math.Min((float)Room.Rand.NextDouble() / 3, Spreading) * Math.Min(Room.Rand.Next(-1, 2), 1);
+                Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
+                    PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, spread);
+            }
         }
 
         public Texture2D GetPrjTexture()
@@ -871,14 +884,19 @@ namespace BulletHell
         public readonly int Damage = 3;
         public readonly int PlusAmmo = 20;
         public readonly int ID = 5;
-        public int AvailableAmmo;
+        public int AvailableAmmo = 20;
         public readonly float Spreading = 0;
 
 
         public void Shoot()
         {
-            Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
-                PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, Spreading);
+            if (AvailableAmmo > 0)
+            {
+                AvailableAmmo--;
+                Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
+                    PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, Spreading);
+            }
+            
         }
 
         public Texture2D GetPrjTexture()
@@ -933,19 +951,22 @@ namespace BulletHell
         public readonly float ProjectaleSpeed = 3;
         public readonly float ForceTic = 1;
         public readonly float Damage = 0.3f;
-        public readonly int PlusAmmo = 70;
+        public readonly int PlusAmmo = 170;
         public readonly int ID = 6;
-        public int AvailableAmmo;
+        public int AvailableAmmo = 170;
         public readonly float Spreading = 0;
 
 
         public void Shoot()
         {
-            Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
+            if (AvailableAmmo > 0)
+            {
+                Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
                 PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, Spreading);
+            }
         }
 
-        public Texture2D GetPrjTexture()
+            public Texture2D GetPrjTexture()
         {
             return PrjTexture;
         }
@@ -999,14 +1020,17 @@ namespace BulletHell
         public readonly int Damage = 1;
         public readonly int PlusAmmo = 40;
         public readonly int ID = 7;
-        public int AvailableAmmo;
+        public int AvailableAmmo = 40;
         public readonly float Spreading = 0;
 
 
         public void Shoot()
         {
-            Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
+            if (AvailableAmmo > 0)
+            {
+                Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
                 PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, Spreading);
+            }
         }
 
         public Texture2D GetPrjTexture()
@@ -1063,14 +1087,17 @@ namespace BulletHell
         public readonly int Damage = 7;
         public readonly int PlusAmmo = 10;
         public readonly int ID = 8;
-        public int AvailableAmmo;
+        public int AvailableAmmo = 10;
         public readonly float Spreading = 0;
 
 
         public void Shoot()
         {
-            Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
+            if (AvailableAmmo > 0)
+            {
+                Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
                 PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, 0);
+            }
         }
 
         public Texture2D GetPrjTexture()
@@ -1125,14 +1152,17 @@ namespace BulletHell
         public readonly int Damage = 3;
         public readonly int PlusAmmo = 20;
         public readonly int ID = 9;
-        public int AvailableAmmo;
+        public int AvailableAmmo = 20;
         public readonly float Spreading = 0;
 
 
         public void Shoot()
         {
-            Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
+            if (AvailableAmmo > 0)
+            {
+                Objects.CreateProj(Hero1.GetPos(), new Point(Mouse.GetState().X, Mouse.GetState().Y),
                 PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, 0);
+            }
         }
 
         public Texture2D GetPrjTexture()
@@ -1187,17 +1217,20 @@ namespace BulletHell
         public readonly int Damage = 1;
         public readonly int PlusAmmo = 20;
         public readonly int ID = 10;
-        public int AvailableAmmo;
+        public int AvailableAmmo = 20;
         public readonly float Spreading = 0;
 
 
 
         public void Shoot()
         {
-            for (var i = 1; i <= 3; i++)
-                Objects.CreateProj(Hero1.GetPos(),
-                    new Point(Mouse.GetState().X, Mouse.GetState().Y),
-                    PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, GetSpread(i));
+            if (AvailableAmmo > 0)
+            {
+                for (var i = 1; i <= 3; i++)
+                    Objects.CreateProj(Hero1.GetPos(),
+                        new Point(Mouse.GetState().X, Mouse.GetState().Y),
+                        PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, GetSpread(i));
+            }
         }
 
         public Texture2D GetPrjTexture()
@@ -1267,17 +1300,20 @@ namespace BulletHell
         public readonly int Damage = 1;
         public readonly int PlusAmmo = 20;
         public readonly int ID = 11;
-        public int AvailableAmmo;
+        public int AvailableAmmo = 20;
         public readonly float Spreading = 0;
 
 
 
         public void Shoot()
         {
-            for (var i = 1; i <= 3; i++)
-                Objects.CreateProj(Hero1.GetPos(),
-                    new Point(Mouse.GetState().X, Mouse.GetState().Y),
-                    PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, GetSpread(i));
+            if (AvailableAmmo > 0)
+            {
+                for (var i = 1; i <= 3; i++)
+                    Objects.CreateProj(Hero1.GetPos(),
+                        new Point(Mouse.GetState().X, Mouse.GetState().Y),
+                        PrjTexture, ProjectaleSpeed, Level.rooms[Level.GetHeroInRoomValue()].projectiles, false, Damage, GetSpread(i));
+            }
         }
 
         public Texture2D GetPrjTexture()
