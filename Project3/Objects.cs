@@ -46,7 +46,7 @@ namespace BulletHell
             if (target.X > pos.X + 30)
             {
                 if (!isEnPrj)
-                    start = Hero1.CalcGunPos(true);
+                    start = Hero1.CalcGunPos(false);
                 else
                     start = new Vector2(pos.X + SimpleEnem.Texture2D.Width / 2, pos.Y + SimpleEnem.Texture2D.Height / 2);
                 projectiles.Add(new Projectile()
