@@ -116,7 +116,7 @@ namespace BulletHell
             Level.Torch = Content.Load<Texture2D>("torch");
             Level.Floor = Content.Load<Texture2D>("floor");
             Level.Wall = Content.Load<Texture2D>("wall");
-            Hero1.inventory.Add(new Deagle());
+            Hero1.inventory.Add(new Pistol());
             Level.InitLevel(GraphicsDevice, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
             var vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor),
             4, BufferUsage.None);
