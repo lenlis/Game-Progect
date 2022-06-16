@@ -243,6 +243,8 @@ namespace BulletHell
                 spriteBatch.DrawString(font, Hero1.GetCoinsValue().ToString(), new Vector2(160, 15), Color.White);
                 spriteBatch.Draw(Key.Texture2D, new Vector2(220, 18), null, Color.White, 0, Vector2.Zero, 2f, SpriteEffects.None, 0);
                 spriteBatch.DrawString(font, Hero1.GetKeysValue().ToString(), new Vector2(260, 15), Color.White);
+                spriteBatch.Draw(Hero1.inventory[Hero1.weaponInHand].GetGunTexture(), new Vector2(300, 18), null, Color.White, 0, Vector2.Zero, 2f, SpriteEffects.None, 0);
+                spriteBatch.DrawString(font, Hero1.inventory[Hero1.weaponInHand].GetAmmo().ToString(), new Vector2(340, 15), Color.White);
                 Hero1.Draw(Mouse.GetState(), spriteBatch);
                 Level.Draw(GraphicsDevice, effectPassCollection);
                 spriteBatch.End();

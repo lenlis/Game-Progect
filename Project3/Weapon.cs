@@ -16,6 +16,8 @@ namespace BulletHell
 
         public void AddAmmo(int ammo);
 
+        public int GetAmmo();
+
         public Texture2D GetPrjTexture();
 
         public int GetPlusAmmo();

@@ -362,7 +362,7 @@ namespace BulletHell
             {
                 spriteBatch.Draw(Texture2D, GetPos(), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.9f);
                 spriteBatch.Draw(ItemInCase.GetTexture(),
-                    new Vector2(GetPos().X + ItemInCase.GetTexture().Width / 2 + Texture2D.Width / 2, GetPos().Y - ItemInCase.GetTexture().Height),
+                    new Vector2(GetPos().X - ItemInCase.GetTexture().Width / 2 + Texture2D.Width / 2, GetPos().Y - ItemInCase.GetTexture().Height),
                     null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.9f);
                 spriteBatch.DrawString(Game1.font, Price.ToString(), new Vector2(GetPos().X + 10, GetPos().Y + 10), Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.8f);
             }
@@ -375,8 +375,6 @@ namespace BulletHell
     class Portal : GameObject
     {
         public static Texture2D Texture2D { get; set; }
-        public IItem ItemInCase;
-        public int Price;
 
         public Rectangle GetCollusion()
         {

@@ -15,7 +15,7 @@ namespace BulletHell
         static public Texture2D Floor { get; set; }
         static public Texture2D Wall { get; set; }
         static public Vector2 roomPos;
-        static public int MaxRoomInd = 20;
+        public const int MaxRoomInd = 30;
         static private int HeroInRoom;
         static public int LevelCount = 0;
         const int VerticalMapSize = 10;
@@ -352,7 +352,7 @@ namespace BulletHell
                     }
                 }
                 if (flag == true) continue;
-                if (Level.rooms.Count + Level.queue.Count < 30)
+                if (Level.rooms.Count + Level.queue.Count < Level.MaxRoomInd)
                 {
                     doors.Add(new Door());
                     Level.queue.Enqueue(new NotInitRoom(i, GetPosibleWay(mapCord, i), GetMapWay(i, realMapPosition)));
@@ -377,10 +377,10 @@ namespace BulletHell
             }
             else if (Position.X >= 450 && Position.Y >= 200)
             {
-                for (int i = 1; i<=3; i++) 
+                for (int i = 1; i <= 3; i++)
                 {
-                    showcases.Add(new Showcase() { ItemInCase = Loot.AddLootInCase(Rand.Next(0, 17)), Price = Rand.Next(20, 50)*Level.LevelCount });
-                    showcases[^1].UpdatePos(new Vector2(Position.X + Position.X * i/2, Level.windowHeight / 2 - Showcase.Texture2D.Height));
+                    showcases.Add(new Showcase() { ItemInCase = Loot.AddLootInCase(Rand.Next(0, 17)), Price = Rand.Next(20, 50) * Level.LevelCount });
+                    showcases[^1].UpdatePos(new Vector2(Position.X + Position.X * i / 2, Level.windowHeight / 2 - Showcase.Texture2D.Height));
                 }
             }
             else if (roomInd != 0)
@@ -434,8 +434,8 @@ namespace BulletHell
                 vertexPositionColorsHorisontalWall[3]
             };
 
-            for(var i = Position.X * 2; i <= Level.windowWidth - Position.X * 2;i += Position.X)
-                for (var j = Position.Y * 2; j <= Level.windowHeight - Position.Y * 2; j += Position.Y)
+            for(var i = Position.X; i <= Level.windowWidth - Position.X * 2;i += Position.X)
+                for (var j = Position.Y; j <= Level.windowHeight - Position.Y * 2; j += Position.Y)
                     EnemyPositions.Add(new Vector2(i, j));
         }
 
